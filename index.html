@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Party BINs — Live</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="phone-frame">
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <img src="https://www.figma.com/api/mcp/asset/eef83297-9518-4043-8aa7-383ea7e77b40" alt="" class="status-signal">
+        <img src="https://www.figma.com/api/mcp/asset/b46b796a-0ff7-4579-9928-2f8030fc559d" alt="" class="status-wifi">
+        <div class="status-battery">
+          <div class="battery-body"><div class="battery-fill"></div></div>
+          <div class="battery-cap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Background -->
+    <div class="video-bg">
+      <video id="bg-video" autoplay loop playsinline muted src="bg-video.mov"></video>
+      <video id="webcam" autoplay playsinline muted></video>
+      <div class="gradient-top"></div>
+      <div class="gradient-bottom"></div>
+    </div>
+
+    <!-- Live Header -->
+    <div class="live-header">
+      <div class="seller-info">
+        <img src="https://www.figma.com/api/mcp/asset/e386bf0b-9089-494b-83f8-40a6ed90c87a" alt="sneakerfreaker" class="seller-avatar">
+        <div class="seller-details">
+          <div class="seller-name-row">
+            <span class="seller-name">sneakerfreaker</span>
+            <img src="https://www.figma.com/api/mcp/asset/24d401ef-677d-40ec-9b3a-eea11321380e" alt="Verified" class="verified-badge">
+          </div>
+          <div class="seller-rating">
+            <img src="https://www.figma.com/api/mcp/asset/cf6e580e-8eb1-491a-8382-9099186f29ee" alt="" class="star-icon">
+            <span>4.9</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="live-count">
+          <div class="live-indicator">
+            <span class="bar bar-1"></span>
+            <span class="bar bar-2"></span>
+            <span class="bar bar-3"></span>
+          </div>
+          <span class="viewer-count">120</span>
+        </div>
+        <button class="nav-btn-round">
+          <img src="https://www.figma.com/api/mcp/asset/44e37afc-d472-4eb9-88f5-d55e567600eb" alt="" class="chevron-icon">
+        </button>
+      </div>
+    </div>
+
+    <!-- Show Notes -->
+    <div class="show-notes" id="show-notes">
+      <div class="show-notes-collapsed" id="show-notes-toggle">
+        <img src="https://www.figma.com/api/mcp/asset/ec5a4604-a5c6-42da-abb7-0abbcfdc1f2d" alt="" class="show-notes-icon">
+        <span class="show-notes-label">Show<br>Notes</span>
+      </div>
+      <div class="show-notes-expanded">
+        <div class="show-notes-header">
+          <span class="show-notes-title">Show Notes</span>
+          <button class="show-notes-close" id="show-notes-close">
+            <span class="show-notes-minus"></span>
+          </button>
+        </div>
+        <div class="show-notes-divider"></div>
+        <div class="show-notes-section-title">Party Purchase Milestones</div>
+        <div class="show-notes-list" id="show-notes-list"></div>
+      </div>
+    </div>
+
+    <!-- Chat + Side Menu -->
+    <div class="chat-and-menu">
+      <div class="chat-section">
+        <!-- Chat Messages -->
+        <div class="chat-thread">
+          <div class="chat-message faded">
+            <img src="https://www.figma.com/api/mcp/asset/d1b662fb-01ba-4985-a98d-c9bc05148695" alt="" class="chat-avatar">
+            <div class="chat-content">
+              <span class="chat-username">somedude</span>
+              <span class="chat-text">can't wait for this weeks show!</span>
+            </div>
+          </div>
+          <div class="chat-message">
+            <img src="https://www.figma.com/api/mcp/asset/a5a09b94-9298-4db9-a5f6-126f1f3da900" alt="" class="chat-avatar">
+            <div class="chat-content">
+              <span class="chat-username">lilbawler</span>
+              <span class="chat-text">yay! 🥳🥳🥳</span>
+            </div>
+          </div>
+          <div class="chat-message">
+            <img src="https://www.figma.com/api/mcp/asset/3dce07be-4477-47d9-89a5-116c0c706cf9" alt="" class="chat-avatar">
+            <div class="chat-content">
+              <span class="chat-username">notstarr</span>
+              <span class="chat-text">my wallet is ready</span>
+            </div>
+          </div>
+          <div class="chat-message">
+            <img src="https://www.figma.com/api/mcp/asset/b1c2d5b0-85f4-4800-be06-a1ab1ac86310" alt="" class="chat-avatar">
+            <div class="chat-content">
+              <span class="chat-username team">jmalkemus</span>
+              <span class="chat-text highlight">do you have any tiffany af1s?</span>
+            </div>
+          </div>
+        </div>
+        <!-- Chat Input -->
+        <div class="chat-input">
+          <input type="text" placeholder="Say something..." id="chat-input">
+        </div>
+      </div>
+
+      <!-- Side Menu -->
+      <div class="side-menu">
+        <div class="side-tools">
+          <button class="side-nav-item">
+            <div class="icon-wrap"><img src="https://www.figma.com/api/mcp/asset/81fb145f-a2a3-43ed-987b-928dbf3e5bae" alt="" class="side-icon"></div>
+            <span>More</span>
+          </button>
+          <button class="side-nav-item">
+            <div class="icon-wrap"><img src="https://www.figma.com/api/mcp/asset/f88d0c23-1e26-4b70-bfd9-7346dad6c71a" alt="" class="side-icon"></div>
+            <span>Tips</span>
+          </button>
+          <button class="side-nav-item">
+            <div class="icon-wrap"><img src="https://www.figma.com/api/mcp/asset/5d53de9a-52d6-4fb7-b9c0-806d9602c285" alt="" class="side-icon"></div>
+            <span>Clip</span>
+          </button>
+          <button class="side-nav-item">
+            <div class="icon-wrap"><img src="https://www.figma.com/api/mcp/asset/4cbf948f-6760-4c00-88ca-578f92ee1425" alt="" class="side-icon"></div>
+            <span>Share</span>
+          </button>
+          <button class="side-nav-item">
+            <div class="icon-wrap"><img src="https://www.figma.com/api/mcp/asset/595eaa54-e66a-4f42-a417-a806034c20c5" alt="" class="side-icon"></div>
+            <span>Wallet</span>
+          </button>
+        </div>
+        <div class="shop-entry">
+          <div class="shop-stack">
+            <img src="https://www.figma.com/api/mcp/asset/ea1b501d-1e1d-4818-a869-eba5eb816ea8" alt="" class="shop-thumb back">
+            <img src="https://www.figma.com/api/mcp/asset/ea1b501d-1e1d-4818-a869-eba5eb816ea8" alt="" class="shop-thumb mid">
+            <img src="https://www.figma.com/api/mcp/asset/bdd81bf2-9780-4262-b6ef-6ff2f58eec4b" alt="" class="shop-thumb front">
+          </div>
+          <span class="shop-badge">56</span>
+          <span class="shop-label">Shop</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Milestone / Party Purchase -->
+    <div class="milestone-section">
+      <div class="milestone-top">
+        <span class="milestone-title">Milestone 1 of 5</span>
+        <span class="milestone-timer">10:00</span>
+      </div>
+      <div class="milestone-progress">
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+        <div class="milestone-icon">
+          <img src="https://www.figma.com/api/mcp/asset/6e54026c-7041-4cf2-9b8b-8e25106c9ed0" alt="" class="gift-icon">
+        </div>
+      </div>
+      <div class="milestone-buyers">
+        <span class="milestone-count">0 of 20</span>
+        <span class="buyer-activity" id="buyer-activity"></span>
+      </div>
+    </div>
+
+    <!-- Pinned Product -->
+    <div class="pinned-product">
+      <div class="product-details">
+        <img src="https://www.figma.com/api/mcp/asset/492f62bc-fb57-4918-8262-0890d72ae775" alt="Nike Air Max Black" class="product-image">
+        <div class="product-info">
+          <div class="product-left">
+            <span class="product-name">Nike Air Max Black</span>
+            <span class="product-attrs">Size M8.5 &bull; New</span>
+            <span class="product-shipping">$4.13 Shipping + Taxes</span>
+          </div>
+          <div class="product-right">
+            <div class="product-pricing">
+              <span class="product-price-original">$100</span>
+              <span class="product-price-discount"></span>
+            </div>
+            <span class="product-stock">200 Left</span>
+          </div>
+        </div>
+      </div>
+      <div class="swipe-track" id="swipe-track">
+        <div class="swipe-thumb" id="swipe-thumb">
+          <span class="swipe-label">Buy Now</span>
+          <span class="swipe-chevrons">&rsaquo;&rsaquo;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Celebration Overlay -->
+    <div class="celebration" id="celebration"></div>
+
+    <!-- Buyer Giveaway Overlay -->
+    <div class="giveaway-overlay" id="giveaway-overlay">
+      <div class="giveaway-card">
+        <p class="giveaway-title" id="giveaway-title">Selecting Winner</p>
+        <div class="giveaway-scroller-wrap">
+          <div class="giveaway-scroller" id="giveaway-scroller"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Intro Bottom Sheet -->
+    <div class="intro-sheet-backdrop" id="intro-sheet-backdrop"></div>
+    <div class="intro-sheet" id="intro-sheet">
+      <div class="intro-sheet-notch">
+        <div class="intro-sheet-handle"></div>
+      </div>
+      <div class="intro-sheet-body">
+        <div class="intro-sheet-illustration">
+          <video autoplay loop playsinline muted src="disco.mp4" class="intro-sheet-video"></video>
+        </div>
+        <div class="intro-sheet-copy">
+          <p class="intro-sheet-title">Party Purchase</p>
+          <p class="intro-sheet-subtitle">Invite your friends to join in the fun. More sales and participation unlocks more rewards. Check the show notes to see all the prizes.</p>
+        </div>
+      </div>
+      <div class="intro-sheet-cta">
+        <button class="intro-btn intro-btn-primary">Invite Friends</button>
+        <button class="intro-btn intro-btn-tertiary" id="intro-start-watching">Start Watching</button>
+      </div>
+      <div class="intro-sheet-home">
+        <div class="home-handle"></div>
+      </div>
+    </div>
+
+    <!-- Home Indicator -->
+    <div class="home-indicator">
+      <div class="home-handle"></div>
+    </div>
+
+  </div>
+
+  <!-- Speed Controllers -->
+  <div class="controllers-panel">
+    <div class="controller toggle-row hidden">
+      <label class="speed-label">Mode</label>
+      <div class="mode-toggle" id="mode-toggle">
+        <button class="mode-btn active" data-mode="buyer">Buyer</button>
+        <button class="mode-btn" data-mode="seller">Seller</button>
+      </div>
+    </div>
+    <div class="controller toggle-row">
+      <label class="speed-label">Intro Sheet</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="intro-sheet-toggle">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller toggle-row">
+      <label class="speed-label">Background</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="bg-video-toggle" checked>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller toggle-row">
+      <label class="speed-label">Bar Effects</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="bar-effects-toggle" checked>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller toggle-row">
+      <label class="speed-label">Buyer Badges</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="badge-toggle">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller">
+      <label class="speed-label">Milestones</label>
+      <div id="milestone-list" class="milestone-list"></div>
+      <button class="reset-btn" id="add-milestone-btn">Add Milestone</button>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller">
+      <label class="speed-label">Chat Speed</label>
+      <input type="range" min="0" max="4" step="1" value="2" id="speed-slider">
+      <div class="speed-ticks">
+        <span>Off</span>
+        <span>Slow</span>
+        <span>Med</span>
+        <span>Fast</span>
+        <span>Chaos</span>
+      </div>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller">
+      <label class="speed-label">Purchase Speed</label>
+      <input type="range" min="0" max="4" step="1" value="2" id="purchase-slider">
+      <div class="speed-ticks">
+        <span>Off</span>
+        <span>Slow</span>
+        <span>Med</span>
+        <span>Fast</span>
+        <span>Chaos</span>
+      </div>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller">
+      <button class="reset-btn" id="trigger-jumbotron">Trigger Jumbotron</button>
+      <button class="reset-btn" id="reset-btn">Reset</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
