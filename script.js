@@ -1099,9 +1099,9 @@ showNotesClose.addEventListener("click", () => {
 const showNotesDebugToggle = document.getElementById("show-notes-debug-toggle");
 showNotesDebugToggle.addEventListener("change", () => {
   if (showNotesDebugToggle.checked) {
-    showNotesEl.classList.add("hidden");
-  } else {
     showNotesEl.classList.remove("hidden");
+  } else {
+    showNotesEl.classList.add("hidden");
   }
 });
 
@@ -1352,7 +1352,7 @@ preshowToggle.addEventListener("change", () => {
     buyersEl.classList.add("hidden");
     pinnedProduct.classList.add("hidden");
     milestoneTimer.classList.add("hidden");
-    milestoneSection.style.marginBottom = "auto";
+    milestoneSection.style.marginBottom = "16px";
     stopAutoPurchases();
     renderPreshowRewards();
     ppPreshow.classList.remove("hidden");
