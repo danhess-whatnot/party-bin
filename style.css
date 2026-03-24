@@ -1208,7 +1208,7 @@ body {
 }
 
 .pp-reward-completed {
-  color: #ffe414;
+  color: #009E52;
 }
 
 /* ── Pre Show Inline Panel ────────────────────── */
@@ -1289,7 +1289,7 @@ body {
   font-weight: 600;
   line-height: 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 40px;
   cursor: pointer;
 }
 
@@ -1587,8 +1587,11 @@ body {
 }
 
 .v2-bubble.reached {
-  background: linear-gradient(135deg, #ffe414, #ef6a1f);
-  color: #000;
+  width: 6px;
+  height: 6px;
+  background: #000000;
+  color: transparent;
+  font-size: 0;
 }
 
 .v2-gift-icon {
@@ -2331,6 +2334,26 @@ body {
 
 /* ── Controllers Panel ────────────────────────── */
 
+.debug-collapse-btn {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 301;
+  background: rgba(20, 20, 30, 0.92);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 6px;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  letter-spacing: 1px;
+}
+
 .controllers-panel {
   position: fixed;
   top: 50%;
@@ -2346,6 +2369,13 @@ body {
   z-index: 300;
   display: flex;
   flex-direction: column;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.controllers-panel.collapsed {
+  transform: translateY(-50%) translateX(calc(100% + 24px));
+  opacity: 0;
+  pointer-events: none;
 }
 
 .controller-divider {

@@ -808,11 +808,6 @@ function animateBubbleReached(bubble) {
     bubble.classList.remove("flash");
     bubble.classList.add("reached");
     bubble.textContent = "";
-    const check = document.createElement("img");
-    check.src = ICON_CHECK;
-    check.alt = "";
-    check.className = "v2-check";
-    bubble.appendChild(check);
   }, 300);
 
   setTimeout(() => {
@@ -1455,6 +1450,11 @@ function closeExpandedPanel() {
   clearTimeout(expandedAutoCloseTimer);
   getActiveProgressEl().classList.remove("hidden");
   buyersEl.classList.remove("hidden");
+  if (currentMilestone < MILESTONES.length) {
+    scheduleTitleSwap(currentMilestone);
+  } else {
+    milestoneTitle.textContent = "Party Progress Complete!";
+  }
   updateMilestoneUI();
 }
 
@@ -1725,6 +1725,15 @@ function startFlameTracking() {
 }
 
 startFlameTracking();
+
+// ── Debug panel collapse ─────────────────────────
+
+const debugCollapseBtn = document.getElementById("debug-collapse-btn");
+const controllersPanel = document.getElementById("controllers-panel");
+
+debugCollapseBtn.addEventListener("click", () => {
+  controllersPanel.classList.toggle("collapsed");
+});
 
 // ── Live indicator pulse ─────────────────────────
 
