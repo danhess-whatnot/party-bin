@@ -49,6 +49,9 @@ const PARTY_HAT = "https://www.figma.com/api/mcp/asset/e7ead8f7-1dd3-4c7e-ab54-6
 const CONFETTI_COLORS = ["#ffe414", "#ef6a1f", "#2dd4a8", "#ff4d6a", "#7c5cfc", "#00b4ff", "#fff"];
 const ICON_GIFT = "https://www.figma.com/api/mcp/asset/6e54026c-7041-4cf2-9b8b-8e25106c9ed0";
 const ICON_DISCOUNT = "https://www.figma.com/api/mcp/asset/fceab759-bfb7-46f2-abbe-4add488a7cb2";
+const ICON_GIFT_3D = "https://www.figma.com/api/mcp/asset/ded37128-8934-45f5-8add-1a740a1b835d";
+const ICON_DISCOUNT_3D = "https://www.figma.com/api/mcp/asset/fb4167fd-5181-4118-b62e-79095fbd420e";
+const ICON_CHECK = "https://www.figma.com/api/mcp/asset/622bf03e-70dd-4dd3-9a6a-98beb1a5580a";
 
 const SPARKLE_OFFSETS = [
   { sx: -8, sy: -10 }, { sx: 10, sy: -7 }, { sx: -6, sy: 9 },
@@ -190,6 +193,13 @@ const showNotesToggle = document.getElementById("show-notes-toggle");
 const showNotesClose = document.getElementById("show-notes-close");
 const showNotesList = document.getElementById("show-notes-list");
 const addMilestoneBtn = document.getElementById("add-milestone-btn");
+const progressV1 = document.getElementById("progress-v1");
+const progressV2 = document.getElementById("progress-v2");
+const progressStyleToggle = document.getElementById("progress-style-toggle");
+const ppExpanded = document.getElementById("pp-expanded");
+const ppRewards = document.getElementById("pp-rewards");
+const ppProgressRow = document.getElementById("pp-progress-row");
+const ppTimer = document.getElementById("pp-timer");
 
 // ── Mutable state ────────────────────────────────
 
@@ -303,8 +313,7 @@ function addBuyerBadge(username, avatar) {
     <div class="chat-content">
       <span class="chat-username">${username}</span>
       <div class="badge-tag">
-        <span class="badge-tag-text">got</span>
-        <span class="badge-label">${rewardName}</span>
+        <span class="badge-label">Joined the Party</span>
       </div>
     </div>`;
   appendAndSlide(msg);
@@ -454,6 +463,11 @@ function emitChargeParticles() {
     ring.style.cssText = `left:${cx}px;top:${cy}px`;
     milestoneProgressEl.appendChild(ring);
     setTimeout(() => ring.remove(), 1000);
+
+    const v2Gift = document.getElementById("v2-gift-icon");
+    if (v2Gift) {
+      v2Gift.classList.remove("wiggling");
+    }
   }, 350);
 }
 
@@ -471,6 +485,28 @@ function triggerProgressBurst() {
     burst.appendChild(sparkle);
   });
   milestoneProgressEl.appendChild(burst);
+  setTimeout(() => burst.remove(), 800);
+
+  triggerV2Burst();
+}
+
+function triggerV2Burst() {
+  const v2Fill = progressV2.querySelector(".v2-fill");
+  const v2Track = progressV2.querySelector(".v2-track");
+  if (!v2Fill || !v2Track) return;
+  const fillW = v2Fill.offsetWidth;
+  const trackLeft = v2Track.offsetLeft;
+  const burst = document.createElement("div");
+  burst.className = "progress-burst";
+  burst.style.left = `${trackLeft + fillW}px`;
+  burst.innerHTML = '<div class="progress-burst-glow"></div><div class="progress-burst-ring"></div>';
+  SPARKLE_OFFSETS.forEach(({ sx, sy }, i) => {
+    const sparkle = document.createElement("div");
+    sparkle.className = "progress-burst-sparkle";
+    sparkle.style.cssText = `--sx:${sx}px;--sy:${sy}px;animation-delay:${i * 0.025}s`;
+    burst.appendChild(sparkle);
+  });
+  progressV2.appendChild(burst);
   setTimeout(() => burst.remove(), 800);
 }
 
@@ -598,7 +634,12 @@ function updateMilestoneUI() {
   const pct = (progress / goal) * 100;
 
   if (!titleSwapped) milestoneTitle.textContent = ms.label;
-  milestoneCount.textContent = `${progress} of ${goal}`;
+  if (progressStyleToggle.checked) {
+    const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
+    milestoneCount.textContent = `${Math.min(totalPurchases, totalGoal)} of ${totalGoal}`;
+  } else {
+    milestoneCount.textContent = `${progress} of ${goal}`;
+  }
   progressFill.style.width = `${Math.max(pct, 2)}%`;
   progressFill.style.setProperty("--glow-intensity", (pct / 100).toFixed(2));
   giftIcon.src = ms.discount > 0 ? ICON_DISCOUNT : ICON_GIFT;
@@ -611,6 +652,122 @@ function updateMilestoneUI() {
     giftIcon.classList.remove("wiggling");
     giftIcon.style.animationDuration = "";
   }
+
+  updateProgressV2();
+}
+
+// ── Segmented Progress Bar (V2) ──────────────────
+
+function renderProgressV2() {
+  progressV2.innerHTML = "";
+  const track = document.createElement("div");
+  track.className = "v2-track";
+  const fill = document.createElement("div");
+  fill.className = "v2-fill";
+  track.appendChild(fill);
+  const v2Flame = document.createElement("div");
+  v2Flame.className = "v2-flame-wrap";
+  v2Flame.id = "v2-flame-wrap";
+  const v2FlameImg = document.createElement("img");
+  v2FlameImg.src = "flame.png";
+  v2FlameImg.alt = "";
+  v2Flame.appendChild(v2FlameImg);
+  track.appendChild(v2Flame);
+  progressV2.appendChild(track);
+
+  const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 1;
+  const bubbles = document.createElement("div");
+  bubbles.className = "v2-bubbles";
+  let cumulative = 0;
+  milestoneConfig.forEach((cfg, idx) => {
+    cumulative += cfg.qty;
+    const pct = (cumulative / totalGoal) * 100;
+    const bubble = document.createElement("div");
+    bubble.className = "v2-bubble";
+    bubble.textContent = cumulative;
+    bubble.dataset.target = cumulative;
+    if (idx === milestoneConfig.length - 1) {
+      bubble.style.right = "1px";
+    } else {
+      bubble.style.left = `calc(${pct}% - 1px)`;
+    }
+    if (idx === milestoneConfig.length - 1) {
+      const icon = document.createElement("img");
+      icon.className = "v2-gift-icon";
+      icon.id = "v2-gift-icon";
+      icon.src = cfg.type === "discount" ? ICON_DISCOUNT : ICON_GIFT;
+      icon.alt = "";
+      bubble.appendChild(icon);
+    }
+    bubbles.appendChild(bubble);
+  });
+  progressV2.appendChild(bubbles);
+}
+
+function updateProgressV2() {
+  const fill = progressV2.querySelector(".v2-fill");
+  const bubbleEls = progressV2.querySelectorAll(".v2-bubble");
+  if (!fill || !bubbleEls.length) return;
+
+  const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
+  if (totalGoal <= 0) return;
+
+  const fillPct = Math.min(totalPurchases / totalGoal, 1) * 100;
+  fill.style.setProperty("--v2-glow-intensity", (fillPct / 100).toFixed(2));
+
+  bubbleEls.forEach((bubble, i) => {
+    const segEnd = MILESTONES[i].end;
+    if (totalPurchases >= segEnd) {
+      if (!bubble.classList.contains("reached")) {
+        animateBubbleReached(bubble);
+      }
+      bubble.classList.remove("active");
+    } else if (totalPurchases > (i === 0 ? 0 : MILESTONES[i].start)) {
+      bubble.classList.add("active");
+      bubble.classList.remove("reached");
+    } else {
+      bubble.classList.remove("reached", "active");
+    }
+  });
+
+  const v2Gift = document.getElementById("v2-gift-icon");
+  if (v2Gift) {
+    const lastMs = MILESTONES[MILESTONES.length - 1];
+    const lastStart = lastMs.start;
+    const lastEnd = lastMs.end;
+    const lastPct = totalPurchases <= lastStart ? 0
+      : Math.min((totalPurchases - lastStart) / (lastEnd - lastStart) * 100, 100);
+    if (lastPct >= 70 && totalPurchases < lastEnd) {
+      const t = (lastPct - 70) / 30;
+      v2Gift.classList.add("wiggling");
+      v2Gift.style.animationDuration = `${0.6 - t * 0.4}s`;
+    } else {
+      v2Gift.classList.remove("wiggling");
+      v2Gift.style.animationDuration = "";
+    }
+  }
+
+  fill.style.width = `${fillPct}%`;
+}
+
+function animateBubbleReached(bubble) {
+  bubble.classList.add("flash");
+  bubble.classList.add("pulse-ring");
+
+  setTimeout(() => {
+    bubble.classList.remove("flash");
+    bubble.classList.add("reached");
+    bubble.textContent = "";
+    const check = document.createElement("img");
+    check.src = ICON_CHECK;
+    check.alt = "";
+    check.className = "v2-check";
+    bubble.appendChild(check);
+  }, 300);
+
+  setTimeout(() => {
+    bubble.classList.remove("pulse-ring");
+  }, 1200);
 }
 
 // ── Purchases ────────────────────────────────────
@@ -621,7 +778,7 @@ function updateStockColor() {
 }
 
 function showBuyerActivity(avatar, name) {
-  const dot = currentMilestone < MILESTONES.length ? '<span class="buyer-dot"></span>' : '';
+  const dot = '<span class="buyer-dot"></span>';
   buyerActivity.innerHTML =
     dot +
     `<img src="${avatar}" alt="" class="buyer-avatar">` +
@@ -655,7 +812,12 @@ function finishAllMilestones() {
   clearTimeout(titleSwapTimer);
   titleSwapped = true;
   milestoneTitle.textContent = "Party Progress Complete!";
-  milestoneCount.textContent = "";
+  if (progressStyleToggle.checked) {
+    const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
+    milestoneCount.textContent = `${totalGoal} of ${totalGoal}`;
+  } else {
+    milestoneCount.textContent = "";
+  }
   progressFill.style.width = "100%";
   giftIcon.classList.remove("wiggling");
   giftIcon.style.animationDuration = "";
@@ -709,7 +871,7 @@ function recordPurchase(overrideAvatar, overrideName) {
 
   if (barEffectsToggle.checked && currentMilestone < MILESTONES.length && shouldFireEffects) {
     milestoneSection.classList.add("pulse");
-    setTimeout(() => milestoneSection.classList.remove("pulse"), 300);
+    setTimeout(() => milestoneSection.classList.remove("pulse"), 500);
   }
 
   if (currentMilestone >= MILESTONES.length) return;
@@ -719,6 +881,7 @@ function recordPurchase(overrideAvatar, overrideName) {
   updateMilestoneUI();
   if (barEffectsToggle.checked && shouldFireEffects) {
     requestAnimationFrame(() => triggerProgressBurst());
+    triggerFlame();
   }
 
   if (totalPurchases >= ms.end) completeMilestone(ms);
@@ -749,6 +912,7 @@ purchaseSlider.addEventListener("input", () => {
 
 // ── Init ─────────────────────────────────────────
 
+renderProgressV2();
 scheduleTitleSwap(0);
 updateMilestoneUI();
 startAutoPurchases(PURCHASE_TIERS[2]);
@@ -775,8 +939,14 @@ function resetPrototype() {
   giftIcon.style.animationDuration = "";
   buyerActivity.classList.remove("visible");
   celebration.classList.remove("visible", "hiding");
+  flameWrap.classList.remove("active");
+  clearTimeout(flameCooldownTimer);
+  const v2Flame = document.getElementById("v2-flame-wrap");
+  if (v2Flame) v2Flame.classList.remove("active");
+  clearTimeout(v2FlameCooldownTimer);
   countdownSeconds = 10 * 60;
   milestoneTimer.textContent = formatTime(countdownSeconds);
+  renderProgressV2();
   scheduleTitleSwap(0);
   updateMilestoneUI();
   startAutoPurchases(PURCHASE_TIERS[parseInt(purchaseSlider.value, 10)]);
@@ -786,6 +956,18 @@ document.getElementById("reset-btn").addEventListener("click", resetPrototype);
 
 document.getElementById("trigger-jumbotron").addEventListener("click", () => {
   showCelebration(currentMilestone < MILESTONES.length ? currentMilestone : 0);
+});
+
+// ── Progress style toggle ────────────────────────
+
+progressStyleToggle.addEventListener("change", () => {
+  if (progressStyleToggle.checked) {
+    progressV1.classList.add("hidden");
+    progressV2.classList.remove("hidden");
+  } else {
+    progressV1.classList.remove("hidden");
+    progressV2.classList.add("hidden");
+  }
 });
 
 // ── Milestone builder ────────────────────────────
@@ -949,6 +1131,108 @@ introToggle.addEventListener("change", () => {
 
 introStartWatching.addEventListener("click", closeIntroSheet);
 introBackdrop.addEventListener("click", closeIntroSheet);
+
+// ── Expanded Party Purchase Panel ────────────────
+
+function getRewardIcon(type) {
+  return type === "discount" ? ICON_DISCOUNT_3D : ICON_GIFT_3D;
+}
+
+function getRewardLabel(cfg) {
+  if (cfg.type === "discount") return `${cfg.discount}% Off`;
+  return cfg.giftName || "Free Gift";
+}
+
+function renderExpandedPanel() {
+  ppRewards.innerHTML = "";
+  ppProgressRow.innerHTML = "";
+  milestoneConfig.forEach(cfg => {
+    const reward = document.createElement("div");
+    reward.className = "pp-reward";
+    reward.innerHTML = `<img src="${getRewardIcon(cfg.type)}" alt="" class="pp-reward-icon"><span class="pp-reward-label">${getRewardLabel(cfg)}</span>`;
+    ppRewards.appendChild(reward);
+  });
+  const track = document.createElement("div");
+  track.className = "pp-progress-track";
+  const fill = document.createElement("div");
+  fill.className = "pp-progress-fill";
+  const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 1;
+  fill.style.width = `${Math.min(totalPurchases / totalGoal, 1) * 100}%`;
+  track.appendChild(fill);
+  ppProgressRow.appendChild(track);
+  const marker = document.createElement("span");
+  marker.className = "pp-marker";
+  marker.textContent = `${Math.min(totalPurchases, totalGoal)} / ${totalGoal}`;
+  ppProgressRow.appendChild(marker);
+  ppTimer.textContent = milestoneTimer.textContent;
+}
+
+function toggleExpandedPanel() {
+  if (ppExpanded.classList.contains("visible")) {
+    ppExpanded.classList.remove("visible");
+  } else {
+    renderExpandedPanel();
+    ppExpanded.classList.add("visible");
+  }
+}
+
+milestoneSection.style.cursor = "pointer";
+milestoneSection.addEventListener("click", toggleExpandedPanel);
+
+document.addEventListener("click", (e) => {
+  if (!ppExpanded.classList.contains("visible")) return;
+  if (ppExpanded.contains(e.target) || milestoneSection.contains(e.target)) return;
+  ppExpanded.classList.remove("visible");
+});
+
+// ── Flame Effect ─────────────────────────────────
+
+const flameWrap = document.getElementById("flame-wrap");
+let flameCooldownTimer = null;
+let v2FlameCooldownTimer = null;
+
+function getFlameProgress() {
+  if (currentMilestone >= MILESTONES.length) return 100;
+  const ms = MILESTONES[currentMilestone];
+  const goal = ms.end - ms.start;
+  return (Math.max(0, Math.min(totalPurchases - ms.start, goal)) / goal) * 100;
+}
+
+function getV2FlameProgress() {
+  const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
+  if (totalGoal <= 0) return 0;
+  return Math.min(totalPurchases / totalGoal, 1) * 100;
+}
+
+function triggerFlame() {
+  if (!barEffectsToggle.checked) return;
+
+  const pct = getFlameProgress();
+  if (pct >= 20) {
+    const scale = 0.5 + 2.05 * ((pct - 20) / 80);
+    flameWrap.style.setProperty("--flame-scale", scale.toFixed(2));
+    flameWrap.style.left = `${progressFill.offsetWidth - 40}px`;
+    flameWrap.classList.add("active");
+    clearTimeout(flameCooldownTimer);
+    flameCooldownTimer = setTimeout(() => {
+      flameWrap.classList.remove("active");
+    }, 1200);
+  }
+
+  const v2Flame = document.getElementById("v2-flame-wrap");
+  if (!v2Flame) return;
+  const v2Pct = getV2FlameProgress();
+  if (v2Pct < 20) return;
+  const v2Scale = 0.7 + 2.3 * ((v2Pct - 20) / 80);
+  v2Flame.style.setProperty("--flame-scale", v2Scale.toFixed(2));
+  const v2Fill = progressV2.querySelector(".v2-fill");
+  if (v2Fill) v2Flame.style.left = `${v2Fill.offsetWidth - 32}px`;
+  v2Flame.classList.add("active");
+  clearTimeout(v2FlameCooldownTimer);
+  v2FlameCooldownTimer = setTimeout(() => {
+    v2Flame.classList.remove("active");
+  }, 1200);
+}
 
 // ── Live indicator pulse ─────────────────────────
 

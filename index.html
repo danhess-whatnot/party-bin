@@ -161,14 +161,18 @@
         <span class="milestone-title">Milestone 1 of 5</span>
         <span class="milestone-timer">10:00</span>
       </div>
-      <div class="milestone-progress">
+      <div class="milestone-progress" id="progress-v1">
         <div class="progress-track">
           <div class="progress-fill"></div>
+          <div class="flame-wrap" id="flame-wrap">
+            <img src="flame.png" alt="" class="flame-img">
+          </div>
         </div>
         <div class="milestone-icon">
           <img src="https://www.figma.com/api/mcp/asset/6e54026c-7041-4cf2-9b8b-8e25106c9ed0" alt="" class="gift-icon">
         </div>
       </div>
+      <div class="milestone-progress-v2 hidden" id="progress-v2"></div>
       <div class="milestone-buyers">
         <span class="milestone-count">0 of 20</span>
         <span class="buyer-activity" id="buyer-activity"></span>
@@ -203,6 +207,14 @@
     </div>
 
     <!-- Celebration Overlay -->
+    <div class="pp-expanded" id="pp-expanded">
+      <div class="pp-top">
+        <span class="pp-title">Party Purchases</span>
+        <span class="pp-timer" id="pp-timer"></span>
+      </div>
+      <div class="pp-rewards" id="pp-rewards"></div>
+      <div class="pp-progress-row" id="pp-progress-row"></div>
+    </div>
     <div class="celebration" id="celebration"></div>
 
     <!-- Buyer Giveaway Overlay -->
@@ -275,6 +287,14 @@
       <label class="speed-label">Bar Effects</label>
       <label class="toggle-switch">
         <input type="checkbox" id="bar-effects-toggle" checked>
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <div class="controller-divider"></div>
+    <div class="controller toggle-row">
+      <label class="speed-label">Segmented Bar</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="progress-style-toggle">
         <span class="toggle-track"></span>
       </label>
     </div>
