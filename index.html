@@ -60,6 +60,18 @@
       </div>
     </div>
 
+    <!-- Gems Counter -->
+    <div class="gems-counter" id="gems-counter">
+      <img src="gem.png" alt="" class="gems-icon">
+      <div class="gems-body">
+        <span class="gems-label">Watch to earn</span>
+        <span class="gems-timer" id="gems-timer">00:00</span>
+        <div class="gems-progress-track">
+          <div class="gems-progress-fill" id="gems-progress-fill"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Show Notes -->
     <div class="show-notes hidden" id="show-notes">
       <div class="show-notes-collapsed" id="show-notes-toggle">
@@ -173,8 +185,17 @@
         </div>
       </div>
       <div class="milestone-progress-v2 hidden" id="progress-v2"></div>
+      <div class="milestone-progress-v3 hidden" id="progress-v3"></div>
       <div class="pp-preshow hidden" id="pp-preshow">
         <div class="pp-rewards" id="pp-preshow-rewards"></div>
+      </div>
+      <div class="pp-preshow2 hidden" id="pp-preshow2">
+        <p class="preshow2-title">Help get the party started</p>
+        <p class="preshow2-subtitle">Invite your friends to join in the fun. More sales and participation unlocks more rewards.</p>
+        <div class="preshow2-video-wrap">
+          <img src="disco.gif" alt="" class="preshow2-video">
+        </div>
+        <button class="preshow2-btn">Invite Friends</button>
       </div>
       <div class="milestone-buyers">
         <span class="milestone-count">0 of 20</span>
@@ -268,22 +289,6 @@
     </div>
     <div class="controller toggle-pair">
       <div class="toggle-row">
-        <label class="speed-label">Intro Sheet</label>
-        <label class="toggle-switch">
-          <input type="checkbox" id="intro-sheet-toggle">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="toggle-row">
-        <label class="speed-label">Pre Show</label>
-        <label class="toggle-switch">
-          <input type="checkbox" id="preshow-toggle">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-    </div>
-    <div class="controller toggle-pair">
-      <div class="toggle-row">
         <label class="speed-label">Background</label>
         <label class="toggle-switch">
           <input type="checkbox" id="bg-video-toggle" checked>
@@ -300,21 +305,12 @@
     </div>
     <div class="controller toggle-pair">
       <div class="toggle-row">
-        <label class="speed-label">Segmented Bar</label>
-        <label class="toggle-switch">
-          <input type="checkbox" id="progress-style-toggle">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="toggle-row">
         <label class="speed-label">Show Notes</label>
         <label class="toggle-switch">
           <input type="checkbox" id="show-notes-debug-toggle">
           <span class="toggle-track"></span>
         </label>
       </div>
-    </div>
-    <div class="controller toggle-pair">
       <div class="toggle-row">
         <label class="speed-label">Buyer Badges</label>
         <label class="toggle-switch">
@@ -322,7 +318,24 @@
           <span class="toggle-track"></span>
         </label>
       </div>
-      <div class="toggle-row"></div>
+    </div>
+    <div class="controller toggle-pair">
+      <div class="toggle-row">
+        <label class="speed-label">Show Mode</label>
+        <select id="show-mode-select" class="debug-select">
+          <option value="live">Live</option>
+          <option value="preshow">Pre Show</option>
+          <option value="preshow2">Pre Show 2</option>
+        </select>
+      </div>
+      <div class="toggle-row">
+        <label class="speed-label">Bar Style</label>
+        <select id="progress-style-select" class="debug-select">
+          <option value="v1">Progress Bar</option>
+          <option value="v2">Segmented Bar</option>
+          <option value="v3">Simple Segmented</option>
+        </select>
+      </div>
     </div>
     <div class="controller-divider"></div>
     <div class="controller">

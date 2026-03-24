@@ -143,8 +143,15 @@ function buildMilestonesFromConfig() {
       badge = giftName.toLowerCase();
     }
 
+    let label;
+    if (total === 1) {
+      label = unlock || badge || "Party Purchase";
+    } else {
+      label = `Milestone ${i + 1} of ${total}`;
+    }
+
     return {
-      label: `Milestone ${i + 1} of ${total}`,
+      label,
       unlock,
       badge,
       celebration: meta.celebration,
@@ -195,12 +202,14 @@ const showNotesList = document.getElementById("show-notes-list");
 const addMilestoneBtn = document.getElementById("add-milestone-btn");
 const progressV1 = document.getElementById("progress-v1");
 const progressV2 = document.getElementById("progress-v2");
-const progressStyleToggle = document.getElementById("progress-style-toggle");
+const progressV3 = document.getElementById("progress-v3");
+const progressStyleSelect = document.getElementById("progress-style-select");
 const ppExpanded = document.getElementById("pp-expanded");
 const ppRewards = document.getElementById("pp-rewards");
 const ppPreshow = document.getElementById("pp-preshow");
 const ppPreshowRewards = document.getElementById("pp-preshow-rewards");
-const preshowToggle = document.getElementById("preshow-toggle");
+const ppPreshow2 = document.getElementById("pp-preshow2");
+const showModeSelect = document.getElementById("show-mode-select");
 
 // ── Mutable state ────────────────────────────────
 
@@ -407,10 +416,10 @@ function scheduleTitleSwap(milestoneIndex) {
   clearTimeout(titleSwapTimer);
   titleSwapped = false;
   const ms = MILESTONES[milestoneIndex];
-  if (!preshowToggle.checked) milestoneTitle.textContent = ms.label;
+  if (showModeSelect.value === "live") milestoneTitle.textContent = ms.label;
   if (ms.unlock) {
     titleSwapTimer = setTimeout(() => {
-      if (!preshowToggle.checked) milestoneTitle.textContent = ms.unlock;
+      if (showModeSelect.value === "live") milestoneTitle.textContent = ms.unlock;
       titleSwapped = true;
     }, 4000);
   }
@@ -489,6 +498,7 @@ function triggerProgressBurst() {
   setTimeout(() => burst.remove(), 800);
 
   triggerV2Burst();
+  triggerV3Burst();
 }
 
 function triggerV2Burst() {
@@ -508,6 +518,26 @@ function triggerV2Burst() {
     burst.appendChild(sparkle);
   });
   progressV2.appendChild(burst);
+  setTimeout(() => burst.remove(), 800);
+}
+
+function triggerV3Burst() {
+  const v3Fill = progressV3.querySelector(".v3-fill");
+  const v3Track = progressV3.querySelector(".v3-track");
+  if (!v3Fill || !v3Track) return;
+  const fillW = v3Fill.offsetWidth;
+  const trackLeft = v3Track.offsetLeft;
+  const burst = document.createElement("div");
+  burst.className = "progress-burst";
+  burst.style.left = `${trackLeft + fillW}px`;
+  burst.innerHTML = '<div class="progress-burst-glow"></div><div class="progress-burst-ring"></div>';
+  SPARKLE_OFFSETS.forEach(({ sx, sy }, i) => {
+    const sparkle = document.createElement("div");
+    sparkle.className = "progress-burst-sparkle";
+    sparkle.style.cssText = `--sx:${sx}px;--sy:${sy}px;animation-delay:${i * 0.025}s`;
+    burst.appendChild(sparkle);
+  });
+  progressV3.appendChild(burst);
   setTimeout(() => burst.remove(), 800);
 }
 
@@ -634,8 +664,8 @@ function updateMilestoneUI() {
   const progress = Math.max(0, Math.min(totalPurchases - ms.start, goal));
   const pct = (progress / goal) * 100;
 
-  if (!titleSwapped && !preshowToggle.checked) milestoneTitle.textContent = ms.label;
-  if (progressStyleToggle.checked) {
+  if (!titleSwapped && showModeSelect.value === "live") milestoneTitle.textContent = ms.label;
+  if (progressStyleSelect.value !== "v1") {
     const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
     milestoneCount.textContent = `${Math.min(totalPurchases, totalGoal)} of ${totalGoal}`;
   } else {
@@ -643,7 +673,7 @@ function updateMilestoneUI() {
   }
   progressFill.style.width = `${Math.max(pct, 2)}%`;
   progressFill.style.setProperty("--glow-intensity", (pct / 100).toFixed(2));
-  giftIcon.src = ms.discount > 0 ? ICON_DISCOUNT : ICON_GIFT;
+  giftIcon.src = ICON_GIFT;
 
   if (pct >= 70) {
     const t = (pct - 70) / 30;
@@ -655,6 +685,7 @@ function updateMilestoneUI() {
   }
 
   updateProgressV2();
+  updateProgressV3();
 }
 
 // ── Segmented Progress Bar (V2) ──────────────────
@@ -696,7 +727,7 @@ function renderProgressV2() {
       const icon = document.createElement("img");
       icon.className = "v2-gift-icon";
       icon.id = "v2-gift-icon";
-      icon.src = cfg.type === "discount" ? ICON_DISCOUNT : ICON_GIFT;
+      icon.src = ICON_GIFT;
       icon.alt = "";
       bubble.appendChild(icon);
     }
@@ -771,6 +802,96 @@ function animateBubbleReached(bubble) {
   }, 1200);
 }
 
+// ── Simple Segmented Bar (V3) ────────────────────
+
+function renderProgressV3() {
+  progressV3.innerHTML = "";
+  const track = document.createElement("div");
+  track.className = "v3-track";
+  const fill = document.createElement("div");
+  fill.className = "v3-fill";
+  track.appendChild(fill);
+  const v3Flame = document.createElement("div");
+  v3Flame.className = "v3-flame-wrap";
+  v3Flame.id = "v3-flame-wrap";
+  const v3FlameImg = document.createElement("img");
+  v3FlameImg.src = "flame.png";
+  v3FlameImg.alt = "";
+  v3Flame.appendChild(v3FlameImg);
+  track.appendChild(v3Flame);
+  progressV3.appendChild(track);
+
+  const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 1;
+  const dots = document.createElement("div");
+  dots.className = "v3-dots";
+  let cumulative = 0;
+  milestoneConfig.forEach((cfg, idx) => {
+    cumulative += cfg.qty;
+    if (idx === milestoneConfig.length - 1) return;
+    const pct = (cumulative / totalGoal) * 100;
+    const dot = document.createElement("div");
+    dot.className = "v3-dot";
+    dot.style.left = `calc(${pct}% - 3px)`;
+    dot.dataset.end = cumulative;
+    dots.appendChild(dot);
+  });
+  progressV3.appendChild(dots);
+
+  const lastCfg = milestoneConfig[milestoneConfig.length - 1];
+  const iconWrap = document.createElement("div");
+  iconWrap.className = "v3-icon-wrap";
+  const icon = document.createElement("img");
+  icon.className = "v3-gift-icon";
+  icon.id = "v3-gift-icon";
+  icon.src = ICON_GIFT;
+  icon.alt = "";
+  iconWrap.appendChild(icon);
+  progressV3.appendChild(iconWrap);
+}
+
+function updateProgressV3() {
+  const fill = progressV3.querySelector(".v3-fill");
+  if (!fill) return;
+
+  const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
+  if (totalGoal <= 0) return;
+
+  const fillPct = Math.min(totalPurchases / totalGoal, 1) * 100;
+  fill.style.setProperty("--v3-glow-intensity", (fillPct / 100).toFixed(2));
+  fill.style.width = `${fillPct}%`;
+
+  const dotEls = progressV3.querySelectorAll(".v3-dot");
+  dotEls.forEach((dot, i) => {
+    const segEnd = parseInt(dot.dataset.end, 10);
+    if (totalPurchases >= segEnd && !dot.classList.contains("reached")) {
+      dot.classList.add("reached");
+      animateV3DotBurst(dot);
+    }
+  });
+
+  const v3Gift = document.getElementById("v3-gift-icon");
+  if (v3Gift) {
+    const lastMs = MILESTONES[MILESTONES.length - 1];
+    const lastStart = lastMs.start;
+    const lastEnd = lastMs.end;
+    const lastPct = totalPurchases <= lastStart ? 0
+      : Math.min((totalPurchases - lastStart) / (lastEnd - lastStart) * 100, 100);
+    if (lastPct >= 70 && totalPurchases < lastEnd) {
+      const t = (lastPct - 70) / 30;
+      v3Gift.classList.add("wiggling");
+      v3Gift.style.animationDuration = `${0.6 - t * 0.4}s`;
+    } else {
+      v3Gift.classList.remove("wiggling");
+      v3Gift.style.animationDuration = "";
+    }
+  }
+}
+
+function animateV3DotBurst(dot) {
+  dot.classList.add("pulse-ring");
+  setTimeout(() => dot.classList.remove("pulse-ring"), 1000);
+}
+
 // ── Purchases ────────────────────────────────────
 
 function updateStockColor() {
@@ -812,9 +933,9 @@ function finishAllMilestones() {
   setTimeout(() => celebration.classList.remove("hiding"), 400);
   clearTimeout(titleSwapTimer);
   titleSwapped = true;
-  if (!preshowToggle.checked) milestoneTitle.textContent = "Party Progress Complete!";
+  if (showModeSelect.value === "live") milestoneTitle.textContent = "Party Progress Complete!";
   const lastMs = MILESTONES[MILESTONES.length - 1];
-  if (progressStyleToggle.checked) {
+  if (progressStyleSelect.value !== "v1") {
     const totalGoal = lastMs?.end || 0;
     milestoneCount.textContent = `${totalGoal} of ${totalGoal}`;
   } else {
@@ -916,6 +1037,7 @@ purchaseSlider.addEventListener("input", () => {
 // ── Init ─────────────────────────────────────────
 
 renderProgressV2();
+renderProgressV3();
 scheduleTitleSwap(0);
 updateMilestoneUI();
 startAutoPurchases(PURCHASE_TIERS[2]);
@@ -947,10 +1069,14 @@ function resetPrototype() {
   const v2Flame = document.getElementById("v2-flame-wrap");
   if (v2Flame) v2Flame.classList.remove("active");
   clearTimeout(v2FlameCooldownTimer);
+  const v3FlameEl = document.getElementById("v3-flame-wrap");
+  if (v3FlameEl) v3FlameEl.classList.remove("active");
+  clearTimeout(v3FlameCooldownTimer);
   countdownSeconds = 10 * 60;
   milestoneTimer.textContent = formatTime(countdownSeconds);
   renderProgressV2();
-  if (preshowToggle.checked) renderPreshowRewards();
+  renderProgressV3();
+  if (showModeSelect.value === "preshow") renderPreshowRewards();
   scheduleTitleSwap(0);
   updateMilestoneUI();
   startAutoPurchases(PURCHASE_TIERS[parseInt(purchaseSlider.value, 10)]);
@@ -964,14 +1090,18 @@ document.getElementById("trigger-jumbotron").addEventListener("click", () => {
 
 // ── Progress style toggle ────────────────────────
 
-progressStyleToggle.addEventListener("change", () => {
-  if (progressStyleToggle.checked) {
-    progressV1.classList.add("hidden");
-    progressV2.classList.remove("hidden");
-  } else {
-    progressV1.classList.remove("hidden");
-    progressV2.classList.add("hidden");
-  }
+function switchProgressBar(style) {
+  progressV1.classList.add("hidden");
+  progressV2.classList.add("hidden");
+  progressV3.classList.add("hidden");
+  if (style === "v1") progressV1.classList.remove("hidden");
+  else if (style === "v2") progressV2.classList.remove("hidden");
+  else if (style === "v3") progressV3.classList.remove("hidden");
+  updateMilestoneUI();
+}
+
+progressStyleSelect.addEventListener("change", () => {
+  switchProgressBar(progressStyleSelect.value);
 });
 
 // ── Milestone builder ────────────────────────────
@@ -1054,7 +1184,7 @@ function renderMilestoneChips() {
     milestoneListEl.appendChild(row);
   });
   if (typeof updateShowNotes === "function") updateShowNotes();
-  if (preshowToggle.checked) renderPreshowRewards();
+  if (showModeSelect.value === "preshow") renderPreshowRewards();
 }
 
 addMilestoneBtn.addEventListener("click", () => {
@@ -1120,28 +1250,41 @@ setInterval(() => {
   }
 }, 1000);
 
+// ── Gems Counter ─────────────────────────────────
+
+const gemsTimerEl = document.getElementById("gems-timer");
+const gemsFill = document.getElementById("gems-progress-fill");
+const GEMS_TOTAL_SECONDS = 10 * 60;
+let gemsElapsed = 0;
+
+function formatGemsTime(s) {
+  return `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+}
+
+setInterval(() => {
+  if (gemsElapsed < GEMS_TOTAL_SECONDS) {
+    gemsElapsed++;
+    gemsTimerEl.textContent = formatGemsTime(gemsElapsed);
+    gemsFill.style.width = `${(gemsElapsed / GEMS_TOTAL_SECONDS) * 100}%`;
+  }
+}, 1000);
+
 // ── Intro Sheet ──────────────────────────────────
 
 const introSheet = document.getElementById("intro-sheet");
 const introBackdrop = document.getElementById("intro-sheet-backdrop");
-const introToggle = document.getElementById("intro-sheet-toggle");
 const introStartWatching = document.getElementById("intro-start-watching");
 
 function openIntroSheet() {
   introSheet.classList.add("visible");
   introBackdrop.classList.add("visible");
-  introToggle.checked = true;
 }
 
 function closeIntroSheet() {
   introSheet.classList.remove("visible");
   introBackdrop.classList.remove("visible");
-  introToggle.checked = false;
+  if (showModeSelect.value === "intro") showModeSelect.value = "live";
 }
-
-introToggle.addEventListener("change", () => {
-  introToggle.checked ? openIntroSheet() : closeIntroSheet();
-});
 
 introStartWatching.addEventListener("click", closeIntroSheet);
 introBackdrop.addEventListener("click", closeIntroSheet);
@@ -1238,7 +1381,7 @@ document.addEventListener("touchend", () => {
 });
 
 function toggleExpandedPanel() {
-  if (preshowToggle.checked) return;
+  if (showModeSelect.value !== "live") return;
   if (ppExpanded.classList.contains("visible")) {
     ppExpanded.classList.remove("visible");
     stopPPAutoScroll();
@@ -1264,6 +1407,8 @@ document.addEventListener("click", (e) => {
 let preshowAutoScrollId = null;
 let preshowScrollDir = 1;
 let preshowScrollAccum = 0;
+let preshowPaused = false;
+let preshowPauseTimer = null;
 let preshowDragging = false;
 let preshowDragStartX = 0;
 let preshowDragScrollLeft = 0;
@@ -1289,23 +1434,32 @@ function startPreshowAutoScroll() {
   stopPreshowAutoScroll();
   preshowScrollDir = 1;
   preshowScrollAccum = 0;
+  preshowPaused = false;
+  clearTimeout(preshowPauseTimer);
   preshowAutoScrollId = setInterval(() => {
-    if (preshowDragging) return;
+    if (preshowDragging || preshowPaused) return;
     const maxScroll = ppPreshowRewards.scrollWidth - ppPreshowRewards.clientWidth;
     if (maxScroll <= 0) return;
-    preshowScrollAccum += preshowScrollDir * 0.5;
+    preshowScrollAccum += preshowScrollDir * 0.25;
     const step = Math.trunc(preshowScrollAccum);
     if (step !== 0) {
       ppPreshowRewards.scrollLeft += step;
       preshowScrollAccum -= step;
     }
-    if (ppPreshowRewards.scrollLeft >= maxScroll) preshowScrollDir = -1;
-    else if (ppPreshowRewards.scrollLeft <= 0) preshowScrollDir = 1;
+    if (ppPreshowRewards.scrollLeft >= maxScroll && preshowScrollDir === 1) {
+      preshowPaused = true;
+      preshowPauseTimer = setTimeout(() => { preshowPaused = false; preshowScrollDir = -1; }, 2000);
+    } else if (ppPreshowRewards.scrollLeft <= 0 && preshowScrollDir === -1) {
+      preshowPaused = true;
+      preshowPauseTimer = setTimeout(() => { preshowPaused = false; preshowScrollDir = 1; }, 2000);
+    }
   }, 16);
 }
 
 function stopPreshowAutoScroll() {
   if (preshowAutoScrollId) { clearInterval(preshowAutoScrollId); preshowAutoScrollId = null; }
+  clearTimeout(preshowPauseTimer);
+  preshowPaused = false;
 }
 
 ppPreshowRewards.addEventListener("mousedown", (e) => {
@@ -1341,39 +1495,68 @@ document.addEventListener("mouseup", () => {
 document.addEventListener("touchend", () => { preshowDragging = false; });
 
 const pinnedProduct = document.querySelector(".pinned-product");
+const buyersEl = document.querySelector(".milestone-buyers");
 
-preshowToggle.addEventListener("change", () => {
-  const progressV1El = document.getElementById("progress-v1");
-  const progressV2El = document.getElementById("progress-v2");
-  const buyersEl = document.querySelector(".milestone-buyers");
-  if (preshowToggle.checked) {
-    progressV1El.classList.add("hidden");
-    progressV2El.classList.add("hidden");
-    buyersEl.classList.add("hidden");
-    pinnedProduct.classList.add("hidden");
-    milestoneTimer.classList.add("hidden");
-    milestoneSection.style.marginBottom = "16px";
-    stopAutoPurchases();
-    renderPreshowRewards();
-    ppPreshow.classList.remove("hidden");
-    milestoneTitle.textContent = "Party Purchase Starting Soon";
-    milestoneCount.textContent = "";
-    startPreshowAutoScroll();
-  } else {
-    ppPreshow.classList.add("hidden");
-    stopPreshowAutoScroll();
-    pinnedProduct.classList.remove("hidden");
-    milestoneTimer.classList.remove("hidden");
-    milestoneSection.style.marginBottom = "";
-    if (progressStyleToggle.checked) {
-      progressV2El.classList.remove("hidden");
-    } else {
-      progressV1El.classList.remove("hidden");
-    }
-    buyersEl.classList.remove("hidden");
-    startAutoPurchases(PURCHASE_TIERS[parseInt(purchaseSlider.value, 10)]);
-    updateMilestoneUI();
-  }
+function enterLiveMode() {
+  closeIntroSheet();
+  ppPreshow.classList.add("hidden");
+  ppPreshow2.classList.add("hidden");
+  stopPreshowAutoScroll();
+  pinnedProduct.classList.remove("hidden");
+  milestoneTimer.classList.remove("hidden");
+  milestoneSection.style.marginBottom = "";
+  switchProgressBar(progressStyleSelect.value);
+  buyersEl.classList.remove("hidden");
+  startAutoPurchases(PURCHASE_TIERS[parseInt(purchaseSlider.value, 10)]);
+  updateMilestoneUI();
+}
+
+function enterPreshowMode() {
+  closeIntroSheet();
+  ppPreshow2.classList.add("hidden");
+  progressV1.classList.add("hidden");
+  progressV2.classList.add("hidden");
+  progressV3.classList.add("hidden");
+  buyersEl.classList.add("hidden");
+  pinnedProduct.classList.add("hidden");
+  milestoneTimer.classList.add("hidden");
+  milestoneSection.style.marginBottom = "16px";
+  stopAutoPurchases();
+  renderPreshowRewards();
+  ppPreshow.classList.remove("hidden");
+  milestoneTitle.textContent = "Party Purchase Starting Soon";
+  milestoneCount.textContent = "";
+  startPreshowAutoScroll();
+}
+
+function enterPreshow2Mode() {
+  closeIntroSheet();
+  ppPreshow.classList.add("hidden");
+  stopPreshowAutoScroll();
+  progressV1.classList.add("hidden");
+  progressV2.classList.add("hidden");
+  progressV3.classList.add("hidden");
+  buyersEl.classList.add("hidden");
+  pinnedProduct.classList.add("hidden");
+  milestoneTimer.classList.add("hidden");
+  milestoneSection.style.marginBottom = "16px";
+  stopAutoPurchases();
+  ppPreshow2.classList.remove("hidden");
+  milestoneTitle.textContent = "";
+  milestoneCount.textContent = "";
+}
+
+function enterIntroMode() {
+  enterLiveMode();
+  openIntroSheet();
+}
+
+showModeSelect.addEventListener("change", () => {
+  const mode = showModeSelect.value;
+  if (mode === "live") enterLiveMode();
+  else if (mode === "intro") enterIntroMode();
+  else if (mode === "preshow") enterPreshowMode();
+  else if (mode === "preshow2") enterPreshow2Mode();
 });
 
 // ── Flame Effect ─────────────────────────────────
@@ -1381,6 +1564,7 @@ preshowToggle.addEventListener("change", () => {
 const flameWrap = document.getElementById("flame-wrap");
 let flameCooldownTimer = null;
 let v2FlameCooldownTimer = null;
+let v3FlameCooldownTimer = null;
 
 function getFlameProgress() {
   if (currentMilestone >= MILESTONES.length) return 100;
@@ -1423,7 +1607,46 @@ function triggerFlame() {
   v2FlameCooldownTimer = setTimeout(() => {
     v2Flame.classList.remove("active");
   }, 1200);
+
+  const v3Flame = document.getElementById("v3-flame-wrap");
+  if (!v3Flame) return;
+  const v3Pct = getV2FlameProgress();
+  if (v3Pct < 20) return;
+  const v3Scale = 0.7 + 0.9 * ((v3Pct - 20) / 80);
+  v3Flame.style.setProperty("--flame-scale", v3Scale.toFixed(2));
+  const v3Fill = progressV3.querySelector(".v3-fill");
+  if (v3Fill) v3Flame.style.left = `${v3Fill.offsetWidth - 40}px`;
+  v3Flame.classList.add("active");
+  clearTimeout(v3FlameCooldownTimer);
+  v3FlameCooldownTimer = setTimeout(() => {
+    v3Flame.classList.remove("active");
+  }, 1200);
 }
+
+let flameTrackingId = null;
+
+function startFlameTracking() {
+  if (flameTrackingId) return;
+  function track() {
+    if (flameWrap.classList.contains("active")) {
+      flameWrap.style.left = `${progressFill.offsetWidth - 40}px`;
+    }
+    const v2Flame = document.getElementById("v2-flame-wrap");
+    if (v2Flame && v2Flame.classList.contains("active")) {
+      const v2Fill = progressV2.querySelector(".v2-fill");
+      if (v2Fill) v2Flame.style.left = `${v2Fill.offsetWidth - 32}px`;
+    }
+    const v3Flame = document.getElementById("v3-flame-wrap");
+    if (v3Flame && v3Flame.classList.contains("active")) {
+      const v3Fill = progressV3.querySelector(".v3-fill");
+      if (v3Fill) v3Flame.style.left = `${v3Fill.offsetWidth - 40}px`;
+    }
+    flameTrackingId = requestAnimationFrame(track);
+  }
+  flameTrackingId = requestAnimationFrame(track);
+}
+
+startFlameTracking();
 
 // ── Live indicator pulse ─────────────────────────
 
