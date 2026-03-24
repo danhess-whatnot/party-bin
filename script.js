@@ -48,7 +48,7 @@ const DAN_AVATAR = "https://www.figma.com/api/mcp/asset/3bf437ba-ebfe-4533-b203-
 const PARTY_HAT = "https://www.figma.com/api/mcp/asset/e7ead8f7-1dd3-4c7e-ab54-6761e23bbda1";
 const CONFETTI_COLORS = ["#ffe414", "#ef6a1f", "#2dd4a8", "#ff4d6a", "#7c5cfc", "#00b4ff", "#fff"];
 const ICON_GIFT = "https://www.figma.com/api/mcp/asset/6e54026c-7041-4cf2-9b8b-8e25106c9ed0";
-const ICON_DISCOUNT = "https://www.figma.com/api/mcp/asset/fceab759-bfb7-46f2-abbe-4add488a7cb2";
+
 const ICON_GIFT_3D = "https://www.figma.com/api/mcp/asset/ded37128-8934-45f5-8add-1a740a1b835d";
 const ICON_DISCOUNT_3D = "https://www.figma.com/api/mcp/asset/fb4167fd-5181-4118-b62e-79095fbd420e";
 const ICON_CHECK = "https://www.figma.com/api/mcp/asset/622bf03e-70dd-4dd3-9a6a-98beb1a5580a";
@@ -311,8 +311,6 @@ function addMessage(username, text, avatar, isHighlight) {
 }
 
 function addBuyerBadge(username, avatar) {
-  const ms = MILESTONES[currentMilestone];
-  const rewardName = ms.badge || ms.label;
   const msg = document.createElement("div");
   msg.className = "chat-message";
   msg.innerHTML = `
@@ -439,6 +437,22 @@ function emitBarStars() {
     const dy = -(14 + Math.random() * 26);
     star.style.cssText = `left:${x}px;--dy:${dy}px;animation-delay:${(Math.random() * 0.8).toFixed(2)}s`;
     milestoneProgressEl.appendChild(star);
+    setTimeout(() => star.remove(), 1800);
+  }
+}
+
+function emitV3Stars() {
+  const v3Fill = progressV3.querySelector(".v3-fill");
+  if (!v3Fill) return;
+  const fillWidth = v3Fill.offsetWidth;
+  if (fillWidth <= 0) return;
+  for (let i = 0; i < 18; i++) {
+    const star = document.createElement("div");
+    star.className = "bar-star";
+    const x = Math.random() * fillWidth;
+    const dy = -(14 + Math.random() * 26);
+    star.style.cssText = `left:${x}px;--dy:${dy}px;animation-delay:${(Math.random() * 0.8).toFixed(2)}s`;
+    progressV3.appendChild(star);
     setTimeout(() => star.remove(), 1800);
   }
 }
@@ -574,6 +588,7 @@ function showCelebration(milestoneIndex) {
   loadCelebration(milestoneIndex);
   celebration.classList.remove("hiding");
   celebration.classList.add("visible");
+  document.getElementById("gems-counter").classList.add("hidden");
   const ms = MILESTONES[milestoneIndex];
 
   setTimeout(() => {
@@ -581,6 +596,7 @@ function showCelebration(milestoneIndex) {
     celebration.classList.remove("visible");
     setTimeout(() => celebration.classList.remove("hiding"), 400);
     if (ms.giveaway) runGiveaway(ms.end - ms.start);
+    else document.getElementById("gems-counter").classList.remove("hidden");
   }, 4000);
 }
 
@@ -631,6 +647,7 @@ function runGiveaway(nameCount) {
   giveawayScroller.style.transition = "none";
   giveawayScroller.style.transform = "translateY(0)";
   giveawayOverlay.classList.add("visible");
+  document.getElementById("gems-counter").classList.add("hidden");
 
   const nameH = 36;
   const scrollDuration = 2000;
@@ -651,6 +668,7 @@ function runGiveaway(nameCount) {
 
   setTimeout(() => {
     giveawayOverlay.classList.remove("visible");
+    document.getElementById("gems-counter").classList.remove("hidden");
     const confettiEl = document.querySelector(".giveaway-confetti");
     if (confettiEl) confettiEl.remove();
   }, 1000 + scrollDuration + 3000);
@@ -837,7 +855,6 @@ function renderProgressV3() {
   });
   progressV3.appendChild(dots);
 
-  const lastCfg = milestoneConfig[milestoneConfig.length - 1];
   const iconWrap = document.createElement("div");
   iconWrap.className = "v3-icon-wrap";
   const icon = document.createElement("img");
@@ -887,9 +904,33 @@ function updateProgressV3() {
   }
 }
 
+const CHARGED_FRAMES = [];
+for (let i = 41; i >= 25; i--) CHARGED_FRAMES.push(`charged/${i}.png`);
+CHARGED_FRAMES.forEach(src => { const img = new Image(); img.src = src; });
+
 function animateV3DotBurst(dot) {
   dot.classList.add("pulse-ring");
   setTimeout(() => dot.classList.remove("pulse-ring"), 1000);
+
+  const sprite = document.createElement("img");
+  sprite.className = "charged-sprite";
+  sprite.style.left = dot.style.left.replace("- 3px", "- 24px");
+  sprite.style.top = "50%";
+  sprite.src = CHARGED_FRAMES[0];
+  const dotsContainer = progressV3.querySelector(".v3-dots");
+  (dotsContainer || progressV3).appendChild(sprite);
+
+  let frame = 0;
+  const fps = 24;
+  const interval = setInterval(() => {
+    frame++;
+    if (frame >= CHARGED_FRAMES.length) {
+      clearInterval(interval);
+      sprite.remove();
+      return;
+    }
+    sprite.src = CHARGED_FRAMES[frame];
+  }, 1000 / fps);
 }
 
 // ── Purchases ────────────────────────────────────
@@ -967,10 +1008,12 @@ function completeMilestone(ms) {
   if (barEffectsToggle.checked) {
     emitBarStars();
     emitChargeParticles();
+    emitV3Stars();
   }
 
   const hasNext = currentMilestone < MILESTONES.length - 1;
-  setTimeout(() => hasNext ? advanceToNextMilestone() : finishAllMilestones(), 2000);
+  const delay = progressStyleSelect.value === "v1" ? 2000 : 0;
+  setTimeout(() => hasNext ? advanceToNextMilestone() : finishAllMilestones(), delay);
 }
 
 function recordPurchase(overrideAvatar, overrideName) {
@@ -1094,6 +1137,10 @@ function switchProgressBar(style) {
   progressV1.classList.add("hidden");
   progressV2.classList.add("hidden");
   progressV3.classList.add("hidden");
+  ppExpanded.classList.add("hidden");
+  expandedVisible = false;
+  stopPPAutoScroll();
+  clearTimeout(expandedAutoCloseTimer);
   if (style === "v1") progressV1.classList.remove("hidden");
   else if (style === "v2") progressV2.classList.remove("hidden");
   else if (style === "v3") progressV3.classList.remove("hidden");
@@ -1275,15 +1322,9 @@ const introSheet = document.getElementById("intro-sheet");
 const introBackdrop = document.getElementById("intro-sheet-backdrop");
 const introStartWatching = document.getElementById("intro-start-watching");
 
-function openIntroSheet() {
-  introSheet.classList.add("visible");
-  introBackdrop.classList.add("visible");
-}
-
 function closeIntroSheet() {
   introSheet.classList.remove("visible");
   introBackdrop.classList.remove("visible");
-  if (showModeSelect.value === "intro") showModeSelect.value = "live";
 }
 
 introStartWatching.addEventListener("click", closeIntroSheet);
@@ -1305,21 +1346,24 @@ let ppAutoScrollId = null;
 let ppScrollDir = 1;
 let ppScrollAccum = 0;
 let ppDragging = false;
+let ppDragMoved = false;
 let ppDragStartX = 0;
 let ppDragScrollLeft = 0;
 
 function renderExpandedPanel() {
   ppRewards.innerHTML = "";
   let cumulative = 0;
-  milestoneConfig.forEach(cfg => {
+  milestoneConfig.forEach((cfg, i) => {
     cumulative += cfg.qty;
+    const completed = MILESTONES[i] && totalPurchases >= MILESTONES[i].end;
+    const qtyText = completed ? "Completed" : `${cumulative} Purchases`;
     const reward = document.createElement("div");
     reward.className = "pp-reward";
     reward.innerHTML =
       `<div class="pp-reward-icon-wrap"><img src="${getRewardIcon(cfg.type)}" alt="" class="pp-reward-icon"></div>` +
       `<div class="pp-reward-copy">` +
         `<span class="pp-reward-name">${getRewardLabel(cfg)}</span>` +
-        `<span class="pp-reward-qty">${cumulative} Purchases</span>` +
+        `<span class="pp-reward-qty${completed ? " pp-reward-completed" : ""}">${qtyText}</span>` +
       `</div>`;
     ppRewards.appendChild(reward);
   });
@@ -1350,25 +1394,38 @@ function stopPPAutoScroll() {
 
 ppRewards.addEventListener("mousedown", (e) => {
   ppDragging = true;
+  ppDragMoved = false;
   ppDragStartX = e.clientX;
   ppDragScrollLeft = ppRewards.scrollLeft;
   ppRewards.style.cursor = "grabbing";
+  resetExpandedAutoClose();
   e.preventDefault();
+  e.stopPropagation();
+});
+
+ppRewards.addEventListener("click", (e) => {
+  if (ppDragMoved) {
+    e.stopPropagation();
+  }
 });
 
 ppRewards.addEventListener("touchstart", (e) => {
   ppDragging = true;
+  ppDragMoved = false;
   ppDragStartX = e.touches[0].clientX;
   ppDragScrollLeft = ppRewards.scrollLeft;
+  resetExpandedAutoClose();
 }, { passive: true });
 
 document.addEventListener("mousemove", (e) => {
   if (!ppDragging) return;
+  ppDragMoved = true;
   ppRewards.scrollLeft = ppDragScrollLeft - (e.clientX - ppDragStartX);
 });
 
 document.addEventListener("touchmove", (e) => {
   if (!ppDragging) return;
+  ppDragMoved = true;
   ppRewards.scrollLeft = ppDragScrollLeft - (e.touches[0].clientX - ppDragStartX);
 }, { passive: true });
 
@@ -1380,27 +1437,54 @@ document.addEventListener("touchend", () => {
   ppDragging = false;
 });
 
+let expandedVisible = false;
+let expandedAutoCloseTimer = null;
+
+function getActiveProgressEl() {
+  const style = progressStyleSelect.value;
+  if (style === "v1") return progressV1;
+  if (style === "v2") return progressV2;
+  return progressV3;
+}
+
+function closeExpandedPanel() {
+  if (!expandedVisible) return;
+  expandedVisible = false;
+  ppExpanded.classList.add("hidden");
+  stopPPAutoScroll();
+  clearTimeout(expandedAutoCloseTimer);
+  getActiveProgressEl().classList.remove("hidden");
+  buyersEl.classList.remove("hidden");
+  updateMilestoneUI();
+}
+
+function resetExpandedAutoClose() {
+  clearTimeout(expandedAutoCloseTimer);
+  if (expandedVisible) {
+    expandedAutoCloseTimer = setTimeout(closeExpandedPanel, 5000);
+  }
+}
+
 function toggleExpandedPanel() {
   if (showModeSelect.value !== "live") return;
-  if (ppExpanded.classList.contains("visible")) {
-    ppExpanded.classList.remove("visible");
-    stopPPAutoScroll();
+  if (ppDragMoved) { ppDragMoved = false; return; }
+  if (expandedVisible) {
+    closeExpandedPanel();
   } else {
+    expandedVisible = true;
     renderExpandedPanel();
-    ppExpanded.classList.add("visible");
+    getActiveProgressEl().classList.add("hidden");
+    buyersEl.classList.add("hidden");
+    ppExpanded.classList.remove("hidden");
+    milestoneTitle.textContent = "Milestones";
+    milestoneCount.textContent = "";
     startPPAutoScroll();
+    resetExpandedAutoClose();
   }
 }
 
 milestoneSection.style.cursor = "pointer";
 milestoneSection.addEventListener("click", toggleExpandedPanel);
-
-document.addEventListener("click", (e) => {
-  if (!ppExpanded.classList.contains("visible")) return;
-  if (ppExpanded.contains(e.target) || milestoneSection.contains(e.target)) return;
-  ppExpanded.classList.remove("visible");
-  stopPPAutoScroll();
-});
 
 // ── Pre Show Toggle ──────────────────────────────
 
@@ -1546,15 +1630,9 @@ function enterPreshow2Mode() {
   milestoneCount.textContent = "";
 }
 
-function enterIntroMode() {
-  enterLiveMode();
-  openIntroSheet();
-}
-
 showModeSelect.addEventListener("change", () => {
   const mode = showModeSelect.value;
   if (mode === "live") enterLiveMode();
-  else if (mode === "intro") enterIntroMode();
   else if (mode === "preshow") enterPreshowMode();
   else if (mode === "preshow2") enterPreshow2Mode();
 });
@@ -1594,33 +1672,33 @@ function triggerFlame() {
     }, 1200);
   }
 
+  const segPct = getV2FlameProgress();
+
   const v2Flame = document.getElementById("v2-flame-wrap");
-  if (!v2Flame) return;
-  const v2Pct = getV2FlameProgress();
-  if (v2Pct < 20) return;
-  const v2Scale = 0.7 + 0.9 * ((v2Pct - 20) / 80);
-  v2Flame.style.setProperty("--flame-scale", v2Scale.toFixed(2));
-  const v2Fill = progressV2.querySelector(".v2-fill");
-  if (v2Fill) v2Flame.style.left = `${v2Fill.offsetWidth - 32}px`;
-  v2Flame.classList.add("active");
-  clearTimeout(v2FlameCooldownTimer);
-  v2FlameCooldownTimer = setTimeout(() => {
-    v2Flame.classList.remove("active");
-  }, 1200);
+  if (v2Flame && segPct >= 20) {
+    const v2Scale = 0.7 + 0.9 * ((segPct - 20) / 80);
+    v2Flame.style.setProperty("--flame-scale", v2Scale.toFixed(2));
+    const v2Fill = progressV2.querySelector(".v2-fill");
+    if (v2Fill) v2Flame.style.left = `${v2Fill.offsetWidth - 32}px`;
+    v2Flame.classList.add("active");
+    clearTimeout(v2FlameCooldownTimer);
+    v2FlameCooldownTimer = setTimeout(() => {
+      v2Flame.classList.remove("active");
+    }, 1200);
+  }
 
   const v3Flame = document.getElementById("v3-flame-wrap");
-  if (!v3Flame) return;
-  const v3Pct = getV2FlameProgress();
-  if (v3Pct < 20) return;
-  const v3Scale = 0.7 + 0.9 * ((v3Pct - 20) / 80);
-  v3Flame.style.setProperty("--flame-scale", v3Scale.toFixed(2));
-  const v3Fill = progressV3.querySelector(".v3-fill");
-  if (v3Fill) v3Flame.style.left = `${v3Fill.offsetWidth - 40}px`;
-  v3Flame.classList.add("active");
-  clearTimeout(v3FlameCooldownTimer);
-  v3FlameCooldownTimer = setTimeout(() => {
-    v3Flame.classList.remove("active");
-  }, 1200);
+  if (v3Flame && segPct >= 20) {
+    const v3Scale = 0.7 + 0.9 * ((segPct - 20) / 80);
+    v3Flame.style.setProperty("--flame-scale", v3Scale.toFixed(2));
+    const v3Fill = progressV3.querySelector(".v3-fill");
+    if (v3Fill) v3Flame.style.left = `${v3Fill.offsetWidth - 40}px`;
+    v3Flame.classList.add("active");
+    clearTimeout(v3FlameCooldownTimer);
+    v3FlameCooldownTimer = setTimeout(() => {
+      v3Flame.classList.remove("active");
+    }, 1200);
+  }
 }
 
 let flameTrackingId = null;

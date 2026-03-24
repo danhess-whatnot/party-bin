@@ -173,7 +173,7 @@
         <span class="milestone-title">Milestone 1 of 5</span>
         <span class="milestone-timer">10:00</span>
       </div>
-      <div class="milestone-progress" id="progress-v1">
+      <div class="milestone-progress hidden" id="progress-v1">
         <div class="progress-track">
           <div class="progress-fill"></div>
           <div class="flame-wrap" id="flame-wrap">
@@ -185,17 +185,20 @@
         </div>
       </div>
       <div class="milestone-progress-v2 hidden" id="progress-v2"></div>
-      <div class="milestone-progress-v3 hidden" id="progress-v3"></div>
+      <div class="milestone-progress-v3" id="progress-v3"></div>
       <div class="pp-preshow hidden" id="pp-preshow">
         <div class="pp-rewards" id="pp-preshow-rewards"></div>
       </div>
       <div class="pp-preshow2 hidden" id="pp-preshow2">
-        <p class="preshow2-title">Help get the party started</p>
-        <p class="preshow2-subtitle">Invite your friends to join in the fun. More sales and participation unlocks more rewards.</p>
         <div class="preshow2-video-wrap">
           <img src="disco.gif" alt="" class="preshow2-video">
         </div>
+        <p class="preshow2-title">Help get the party started</p>
+        <p class="preshow2-subtitle">Invite your friends to join in the fun. More sales and participation unlocks more rewards.</p>
         <button class="preshow2-btn">Invite Friends</button>
+      </div>
+      <div class="pp-expanded hidden" id="pp-expanded">
+        <div class="pp-rewards" id="pp-rewards"></div>
       </div>
       <div class="milestone-buyers">
         <span class="milestone-count">0 of 20</span>
@@ -231,10 +234,6 @@
     </div>
 
     <!-- Celebration Overlay -->
-    <div class="pp-expanded" id="pp-expanded">
-      <span class="pp-title">Party Purchase Milestones</span>
-      <div class="pp-rewards" id="pp-rewards"></div>
-    </div>
     <div class="celebration" id="celebration"></div>
 
     <!-- Buyer Giveaway Overlay -->
@@ -289,7 +288,7 @@
     </div>
     <div class="controller toggle-pair">
       <div class="toggle-row">
-        <label class="speed-label">Background</label>
+        <label class="speed-label">Live Video</label>
         <label class="toggle-switch">
           <input type="checkbox" id="bg-video-toggle" checked>
           <span class="toggle-track"></span>
@@ -324,16 +323,16 @@
         <label class="speed-label">Show Mode</label>
         <select id="show-mode-select" class="debug-select">
           <option value="live">Live</option>
-          <option value="preshow">Pre Show</option>
-          <option value="preshow2">Pre Show 2</option>
+          <option value="preshow">Reward Pre Show</option>
+          <option value="preshow2">Simple Pre Show</option>
         </select>
       </div>
       <div class="toggle-row">
         <label class="speed-label">Bar Style</label>
         <select id="progress-style-select" class="debug-select">
+          <option value="v3">Simple Segmented</option>
           <option value="v1">Progress Bar</option>
           <option value="v2">Segmented Bar</option>
-          <option value="v3">Simple Segmented</option>
         </select>
       </div>
     </div>
