@@ -198,8 +198,9 @@ const progressV2 = document.getElementById("progress-v2");
 const progressStyleToggle = document.getElementById("progress-style-toggle");
 const ppExpanded = document.getElementById("pp-expanded");
 const ppRewards = document.getElementById("pp-rewards");
-const ppProgressRow = document.getElementById("pp-progress-row");
-const ppTimer = document.getElementById("pp-timer");
+const ppPreshow = document.getElementById("pp-preshow");
+const ppPreshowRewards = document.getElementById("pp-preshow-rewards");
+const preshowToggle = document.getElementById("preshow-toggle");
 
 // ── Mutable state ────────────────────────────────
 
@@ -406,10 +407,10 @@ function scheduleTitleSwap(milestoneIndex) {
   clearTimeout(titleSwapTimer);
   titleSwapped = false;
   const ms = MILESTONES[milestoneIndex];
-  milestoneTitle.textContent = ms.label;
+  if (!preshowToggle.checked) milestoneTitle.textContent = ms.label;
   if (ms.unlock) {
     titleSwapTimer = setTimeout(() => {
-      milestoneTitle.textContent = ms.unlock;
+      if (!preshowToggle.checked) milestoneTitle.textContent = ms.unlock;
       titleSwapped = true;
     }, 4000);
   }
@@ -633,7 +634,7 @@ function updateMilestoneUI() {
   const progress = Math.max(0, Math.min(totalPurchases - ms.start, goal));
   const pct = (progress / goal) * 100;
 
-  if (!titleSwapped) milestoneTitle.textContent = ms.label;
+  if (!titleSwapped && !preshowToggle.checked) milestoneTitle.textContent = ms.label;
   if (progressStyleToggle.checked) {
     const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
     milestoneCount.textContent = `${Math.min(totalPurchases, totalGoal)} of ${totalGoal}`;
@@ -811,12 +812,14 @@ function finishAllMilestones() {
   setTimeout(() => celebration.classList.remove("hiding"), 400);
   clearTimeout(titleSwapTimer);
   titleSwapped = true;
-  milestoneTitle.textContent = "Party Progress Complete!";
+  if (!preshowToggle.checked) milestoneTitle.textContent = "Party Progress Complete!";
+  const lastMs = MILESTONES[MILESTONES.length - 1];
   if (progressStyleToggle.checked) {
-    const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 0;
+    const totalGoal = lastMs?.end || 0;
     milestoneCount.textContent = `${totalGoal} of ${totalGoal}`;
   } else {
-    milestoneCount.textContent = "";
+    const goal = lastMs.end - lastMs.start;
+    milestoneCount.textContent = `${goal} of ${goal}`;
   }
   progressFill.style.width = "100%";
   giftIcon.classList.remove("wiggling");
@@ -947,6 +950,7 @@ function resetPrototype() {
   countdownSeconds = 10 * 60;
   milestoneTimer.textContent = formatTime(countdownSeconds);
   renderProgressV2();
+  if (preshowToggle.checked) renderPreshowRewards();
   scheduleTitleSwap(0);
   updateMilestoneUI();
   startAutoPurchases(PURCHASE_TIERS[parseInt(purchaseSlider.value, 10)]);
@@ -1050,6 +1054,7 @@ function renderMilestoneChips() {
     milestoneListEl.appendChild(row);
   });
   if (typeof updateShowNotes === "function") updateShowNotes();
+  if (preshowToggle.checked) renderPreshowRewards();
 }
 
 addMilestoneBtn.addEventListener("click", () => {
@@ -1089,6 +1094,15 @@ showNotesToggle.addEventListener("click", () => {
 
 showNotesClose.addEventListener("click", () => {
   showNotesEl.classList.remove("open");
+});
+
+const showNotesDebugToggle = document.getElementById("show-notes-debug-toggle");
+showNotesDebugToggle.addEventListener("change", () => {
+  if (showNotesDebugToggle.checked) {
+    showNotesEl.classList.add("hidden");
+  } else {
+    showNotesEl.classList.remove("hidden");
+  }
 });
 
 updateShowNotes();
@@ -1139,40 +1153,99 @@ function getRewardIcon(type) {
 }
 
 function getRewardLabel(cfg) {
-  if (cfg.type === "discount") return `${cfg.discount}% Off`;
+  if (cfg.type === "discount") return `${cfg.discountPct || 0}% Off`;
+  if (cfg.type === "giveaway") return "Buyer Giveaway";
   return cfg.giftName || "Free Gift";
 }
 
+let ppAutoScrollId = null;
+let ppScrollDir = 1;
+let ppScrollAccum = 0;
+let ppDragging = false;
+let ppDragStartX = 0;
+let ppDragScrollLeft = 0;
+
 function renderExpandedPanel() {
   ppRewards.innerHTML = "";
-  ppProgressRow.innerHTML = "";
+  let cumulative = 0;
   milestoneConfig.forEach(cfg => {
+    cumulative += cfg.qty;
     const reward = document.createElement("div");
     reward.className = "pp-reward";
-    reward.innerHTML = `<img src="${getRewardIcon(cfg.type)}" alt="" class="pp-reward-icon"><span class="pp-reward-label">${getRewardLabel(cfg)}</span>`;
+    reward.innerHTML =
+      `<div class="pp-reward-icon-wrap"><img src="${getRewardIcon(cfg.type)}" alt="" class="pp-reward-icon"></div>` +
+      `<div class="pp-reward-copy">` +
+        `<span class="pp-reward-name">${getRewardLabel(cfg)}</span>` +
+        `<span class="pp-reward-qty">${cumulative} Purchases</span>` +
+      `</div>`;
     ppRewards.appendChild(reward);
   });
-  const track = document.createElement("div");
-  track.className = "pp-progress-track";
-  const fill = document.createElement("div");
-  fill.className = "pp-progress-fill";
-  const totalGoal = MILESTONES[MILESTONES.length - 1]?.end || 1;
-  fill.style.width = `${Math.min(totalPurchases / totalGoal, 1) * 100}%`;
-  track.appendChild(fill);
-  ppProgressRow.appendChild(track);
-  const marker = document.createElement("span");
-  marker.className = "pp-marker";
-  marker.textContent = `${Math.min(totalPurchases, totalGoal)} / ${totalGoal}`;
-  ppProgressRow.appendChild(marker);
-  ppTimer.textContent = milestoneTimer.textContent;
 }
 
+function startPPAutoScroll() {
+  stopPPAutoScroll();
+  ppScrollDir = 1;
+  ppScrollAccum = 0;
+  ppAutoScrollId = setInterval(() => {
+    if (ppDragging) return;
+    const maxScroll = ppRewards.scrollWidth - ppRewards.clientWidth;
+    if (maxScroll <= 0) return;
+    ppScrollAccum += ppScrollDir * 0.25;
+    const step = Math.trunc(ppScrollAccum);
+    if (step !== 0) {
+      ppRewards.scrollLeft += step;
+      ppScrollAccum -= step;
+    }
+    if (ppRewards.scrollLeft >= maxScroll) ppScrollDir = -1;
+    else if (ppRewards.scrollLeft <= 0) ppScrollDir = 1;
+  }, 16);
+}
+
+function stopPPAutoScroll() {
+  if (ppAutoScrollId) { clearInterval(ppAutoScrollId); ppAutoScrollId = null; }
+}
+
+ppRewards.addEventListener("mousedown", (e) => {
+  ppDragging = true;
+  ppDragStartX = e.clientX;
+  ppDragScrollLeft = ppRewards.scrollLeft;
+  ppRewards.style.cursor = "grabbing";
+  e.preventDefault();
+});
+
+ppRewards.addEventListener("touchstart", (e) => {
+  ppDragging = true;
+  ppDragStartX = e.touches[0].clientX;
+  ppDragScrollLeft = ppRewards.scrollLeft;
+}, { passive: true });
+
+document.addEventListener("mousemove", (e) => {
+  if (!ppDragging) return;
+  ppRewards.scrollLeft = ppDragScrollLeft - (e.clientX - ppDragStartX);
+});
+
+document.addEventListener("touchmove", (e) => {
+  if (!ppDragging) return;
+  ppRewards.scrollLeft = ppDragScrollLeft - (e.touches[0].clientX - ppDragStartX);
+}, { passive: true });
+
+document.addEventListener("mouseup", () => {
+  if (ppDragging) { ppDragging = false; ppRewards.style.cursor = ""; }
+});
+
+document.addEventListener("touchend", () => {
+  ppDragging = false;
+});
+
 function toggleExpandedPanel() {
+  if (preshowToggle.checked) return;
   if (ppExpanded.classList.contains("visible")) {
     ppExpanded.classList.remove("visible");
+    stopPPAutoScroll();
   } else {
     renderExpandedPanel();
     ppExpanded.classList.add("visible");
+    startPPAutoScroll();
   }
 }
 
@@ -1183,6 +1256,124 @@ document.addEventListener("click", (e) => {
   if (!ppExpanded.classList.contains("visible")) return;
   if (ppExpanded.contains(e.target) || milestoneSection.contains(e.target)) return;
   ppExpanded.classList.remove("visible");
+  stopPPAutoScroll();
+});
+
+// ── Pre Show Toggle ──────────────────────────────
+
+let preshowAutoScrollId = null;
+let preshowScrollDir = 1;
+let preshowScrollAccum = 0;
+let preshowDragging = false;
+let preshowDragStartX = 0;
+let preshowDragScrollLeft = 0;
+
+function renderPreshowRewards() {
+  ppPreshowRewards.innerHTML = "";
+  let cumulative = 0;
+  milestoneConfig.forEach(cfg => {
+    cumulative += cfg.qty;
+    const reward = document.createElement("div");
+    reward.className = "pp-reward";
+    reward.innerHTML =
+      `<div class="pp-reward-icon-wrap"><img src="${getRewardIcon(cfg.type)}" alt="" class="pp-reward-icon"></div>` +
+      `<div class="pp-reward-copy">` +
+        `<span class="pp-reward-name">${getRewardLabel(cfg)}</span>` +
+        `<span class="pp-reward-qty">${cumulative} Purchases</span>` +
+      `</div>`;
+    ppPreshowRewards.appendChild(reward);
+  });
+}
+
+function startPreshowAutoScroll() {
+  stopPreshowAutoScroll();
+  preshowScrollDir = 1;
+  preshowScrollAccum = 0;
+  preshowAutoScrollId = setInterval(() => {
+    if (preshowDragging) return;
+    const maxScroll = ppPreshowRewards.scrollWidth - ppPreshowRewards.clientWidth;
+    if (maxScroll <= 0) return;
+    preshowScrollAccum += preshowScrollDir * 0.5;
+    const step = Math.trunc(preshowScrollAccum);
+    if (step !== 0) {
+      ppPreshowRewards.scrollLeft += step;
+      preshowScrollAccum -= step;
+    }
+    if (ppPreshowRewards.scrollLeft >= maxScroll) preshowScrollDir = -1;
+    else if (ppPreshowRewards.scrollLeft <= 0) preshowScrollDir = 1;
+  }, 16);
+}
+
+function stopPreshowAutoScroll() {
+  if (preshowAutoScrollId) { clearInterval(preshowAutoScrollId); preshowAutoScrollId = null; }
+}
+
+ppPreshowRewards.addEventListener("mousedown", (e) => {
+  preshowDragging = true;
+  preshowDragStartX = e.clientX;
+  preshowDragScrollLeft = ppPreshowRewards.scrollLeft;
+  ppPreshowRewards.style.cursor = "grabbing";
+  e.preventDefault();
+});
+
+ppPreshowRewards.addEventListener("touchstart", (e) => {
+  preshowDragging = true;
+  preshowDragStartX = e.touches[0].clientX;
+  preshowDragScrollLeft = ppPreshowRewards.scrollLeft;
+}, { passive: true });
+
+document.addEventListener("mousemove", (e) => {
+  if (preshowDragging) {
+    ppPreshowRewards.scrollLeft = preshowDragScrollLeft - (e.clientX - preshowDragStartX);
+  }
+});
+
+document.addEventListener("touchmove", (e) => {
+  if (preshowDragging) {
+    ppPreshowRewards.scrollLeft = preshowDragScrollLeft - (e.touches[0].clientX - preshowDragStartX);
+  }
+}, { passive: true });
+
+document.addEventListener("mouseup", () => {
+  if (preshowDragging) { preshowDragging = false; ppPreshowRewards.style.cursor = ""; }
+});
+
+document.addEventListener("touchend", () => { preshowDragging = false; });
+
+const pinnedProduct = document.querySelector(".pinned-product");
+
+preshowToggle.addEventListener("change", () => {
+  const progressV1El = document.getElementById("progress-v1");
+  const progressV2El = document.getElementById("progress-v2");
+  const buyersEl = document.querySelector(".milestone-buyers");
+  if (preshowToggle.checked) {
+    progressV1El.classList.add("hidden");
+    progressV2El.classList.add("hidden");
+    buyersEl.classList.add("hidden");
+    pinnedProduct.classList.add("hidden");
+    milestoneTimer.classList.add("hidden");
+    milestoneSection.style.marginBottom = "auto";
+    stopAutoPurchases();
+    renderPreshowRewards();
+    ppPreshow.classList.remove("hidden");
+    milestoneTitle.textContent = "Party Purchase Starting Soon";
+    milestoneCount.textContent = "";
+    startPreshowAutoScroll();
+  } else {
+    ppPreshow.classList.add("hidden");
+    stopPreshowAutoScroll();
+    pinnedProduct.classList.remove("hidden");
+    milestoneTimer.classList.remove("hidden");
+    milestoneSection.style.marginBottom = "";
+    if (progressStyleToggle.checked) {
+      progressV2El.classList.remove("hidden");
+    } else {
+      progressV1El.classList.remove("hidden");
+    }
+    buyersEl.classList.remove("hidden");
+    startAutoPurchases(PURCHASE_TIERS[parseInt(purchaseSlider.value, 10)]);
+    updateMilestoneUI();
+  }
 });
 
 // ── Flame Effect ─────────────────────────────────
@@ -1223,7 +1414,7 @@ function triggerFlame() {
   if (!v2Flame) return;
   const v2Pct = getV2FlameProgress();
   if (v2Pct < 20) return;
-  const v2Scale = 0.7 + 2.3 * ((v2Pct - 20) / 80);
+  const v2Scale = 0.7 + 0.9 * ((v2Pct - 20) / 80);
   v2Flame.style.setProperty("--flame-scale", v2Scale.toFixed(2));
   const v2Fill = progressV2.querySelector(".v2-fill");
   if (v2Fill) v2Flame.style.left = `${v2Fill.offsetWidth - 32}px`;
