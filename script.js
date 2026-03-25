@@ -1765,7 +1765,7 @@ function enterLetsPartyMode() {
       </div>
       <div class="celebration-text">
         <p class="celebration-title">Let's Party</p>
-        <p class="celebration-subtitle" id="letsparty-subtitle" style="visibility:hidden">Show starts in 3</p>
+        <p class="celebration-subtitle" id="letsparty-subtitle" style="visibility:hidden">Party Purchase begins in 3</p>
       </div>
     </div>`;
   celebration.classList.remove("hiding");
@@ -1797,7 +1797,7 @@ function enterLetsPartyMode() {
         }, 500);
         return;
       }
-      sub.textContent = `Show starts in ${countdown}`;
+      sub.textContent = `Party Purchase begins in ${countdown}`;
     }, 1000);
   }, 3000);
 }
