@@ -928,6 +928,43 @@ function animateV3DotBurst(dot) {
   }, 1000 / fps);
 }
 
+function emitV3ChargeParticles() {
+  const iconWrap = progressV3.querySelector(".v3-icon-wrap");
+  if (!iconWrap) return;
+  const iconRect = iconWrap.getBoundingClientRect();
+  const v3Rect = progressV3.getBoundingClientRect();
+  const cx = iconRect.left - v3Rect.left + iconRect.width / 2;
+  const cy = iconRect.top - v3Rect.top + iconRect.height / 2;
+
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+    const dist = 40 + Math.random() * 30;
+    const sx = Math.cos(angle) * dist;
+    const sy = Math.sin(angle) * dist;
+    const dur = 0.4 + Math.random() * 0.3;
+    const delay = Math.random() * 0.25;
+    const particle = document.createElement("div");
+    particle.className = "charge-particle";
+    particle.style.cssText = `left:${cx}px;top:${cy}px;--sx:${sx}px;--sy:${sy}px;--dur:${dur}s;--delay:${delay}s`;
+    progressV3.appendChild(particle);
+    setTimeout(() => particle.remove(), (dur + delay) * 1000 + 100);
+  }
+
+  setTimeout(() => {
+    const v3Gift = document.getElementById("v3-gift-icon");
+    if (v3Gift) {
+      v3Gift.classList.remove("wiggling");
+      v3Gift.classList.add("charged");
+      setTimeout(() => v3Gift.classList.remove("charged"), 1200);
+    }
+    const ring = document.createElement("div");
+    ring.className = "icon-ring-burst";
+    ring.style.cssText = `left:${cx}px;top:${cy}px`;
+    progressV3.appendChild(ring);
+    setTimeout(() => ring.remove(), 1000);
+  }, 350);
+}
+
 // ── Purchases ────────────────────────────────────
 
 function updateStockColor() {
@@ -1004,6 +1041,7 @@ function completeMilestone(ms) {
     emitBarStars();
     emitChargeParticles();
     emitV3Stars();
+    if (currentMilestone >= MILESTONES.length - 1) emitV3ChargeParticles();
   }
 
   const hasNext = currentMilestone < MILESTONES.length - 1;
