@@ -42,7 +42,7 @@ const HIGHLIGHTED_MESSAGES = [
 const MAX_VISIBLE = 9;
 const SPEED_TIERS = [0, 4000, 1800, 800, 250];
 const PURCHASE_TIERS = [0, 3000, 1200, 500, 150];
-const STARTING_STOCK = 200;
+let STARTING_STOCK = 200;
 const BASE_PRICE = 100;
 const DAN_AVATAR = "https://www.figma.com/api/mcp/asset/3bf437ba-ebfe-4533-b203-6c8ceb7d207d";
 const PARTY_HAT = "https://www.figma.com/api/mcp/asset/e7ead8f7-1dd3-4c7e-ab54-6761e23bbda1";
@@ -110,8 +110,8 @@ const CELEBRATIONS = [
 // Each entry: { type: "giveaway"|"discount"|"gift", qty: number, discountPct?: number, giftName?: string }
 let milestoneConfig = [
   { type: "giveaway", qty: 20 },
-  { type: "discount", qty: 20, discountPct: 5 },
-  { type: "gift",     qty: 20, giftName: "Free Socks" },
+  { type: "giveaway", qty: 20 },
+  { type: "discount", qty: 20, discountPct: 20 },
 ];
 
 const MILESTONE_TYPE_META = {
@@ -136,19 +136,16 @@ function buildMilestonesFromConfig() {
     } else if (cfg.type === "discount") {
       discount = cfg.discountPct || 5;
       unlock = `Unlock for ${discount}% off all sales`;
-      badge = `${discount}% off`;
+      badge = `${discount}% Off All Sales`;
     } else {
       giftName = cfg.giftName || "Free Gift";
       unlock = `Unlock for ${giftName}`;
       badge = giftName.toLowerCase();
     }
 
-    let label;
-    if (total === 1) {
-      label = unlock || badge || "Party Purchase";
-    } else {
-      label = `Milestone ${i + 1} of ${total}`;
-    }
+    const rawName = badge || unlock || "Party Purchase";
+    const rewardName = rawName.replace(/\b\w/g, c => c.toUpperCase());
+    const label = `Reward ${i + 1} – ${rewardName}`;
 
     return {
       label,
@@ -223,6 +220,7 @@ let swipeStartX = 0;
 let swipeActive = false;
 let swipeMax = 0;
 let MILESTONES = buildMilestonesFromConfig();
+STARTING_STOCK = MILESTONES[MILESTONES.length - 1]?.end || 200;
 let totalPurchases = 0;
 let burstCounter = 0;
 let recentPurchaseTimes = [];
@@ -415,12 +413,6 @@ function scheduleTitleSwap(milestoneIndex) {
   titleSwapped = false;
   const ms = MILESTONES[milestoneIndex];
   if (showModeSelect.value === "live") milestoneTitle.textContent = ms.label;
-  if (ms.unlock) {
-    titleSwapTimer = setTimeout(() => {
-      if (showModeSelect.value === "live") milestoneTitle.textContent = ms.unlock;
-      titleSwapped = true;
-    }, 4000);
-  }
 }
 
 // ── Progress bar effects ─────────────────────────
@@ -590,6 +582,7 @@ function showCelebration(milestoneIndex) {
   celebration.classList.add("visible");
   document.getElementById("gems-counter").classList.add("hidden");
   const ms = MILESTONES[milestoneIndex];
+  const duration = ms.giveaway ? 2000 : 4000;
 
   setTimeout(() => {
     celebration.classList.add("hiding");
@@ -597,7 +590,7 @@ function showCelebration(milestoneIndex) {
     setTimeout(() => celebration.classList.remove("hiding"), 400);
     if (ms.giveaway) runGiveaway(ms.end - ms.start);
     else document.getElementById("gems-counter").classList.remove("hidden");
-  }, 4000);
+  }, duration);
 }
 
 // ── Buyer Giveaway ───────────────────────────────
@@ -650,13 +643,13 @@ function runGiveaway(nameCount) {
   document.getElementById("gems-counter").classList.add("hidden");
 
   const nameH = 36;
-  const scrollDuration = 2000;
+  const scrollDuration = 1000;
   const targetOffset = -winnerIdx * nameH;
 
   setTimeout(() => {
     giveawayScroller.style.transition = `transform ${scrollDuration}ms cubic-bezier(0.2, 0, 0.1, 1)`;
     giveawayScroller.style.transform = `translateY(${targetOffset}px)`;
-  }, 1000);
+  }, 500);
 
   setTimeout(() => {
     giveawayTitle.textContent = "Giveaway Winner \u{1F389}";
@@ -664,14 +657,14 @@ function runGiveaway(nameCount) {
     winnerEl.classList.add("winner");
     winnerEl.innerHTML = `${winnerName} <span class="won-text">Won The Giveaway!</span>`;
     launchGiveawayConfetti();
-  }, 1000 + scrollDuration);
+  }, 500 + scrollDuration);
 
   setTimeout(() => {
     giveawayOverlay.classList.remove("visible");
     document.getElementById("gems-counter").classList.remove("hidden");
     const confettiEl = document.querySelector(".giveaway-confetti");
     if (confettiEl) confettiEl.remove();
-  }, 1000 + scrollDuration + 3000);
+  }, 500 + scrollDuration + 3000);
 }
 
 // ── Milestone UI ─────────────────────────────────
@@ -1020,6 +1013,9 @@ function finishAllMilestones() {
   giftIcon.style.animationDuration = "";
   milestoneSection.classList.remove("glow-breathe");
   milestoneSection.classList.add("glow-pulse");
+  milestoneSection.classList.add("milestone-complete");
+  stopAutoPurchases();
+  setAwaitingButton("Awaiting Next Item");
 }
 
 function completeMilestone(ms) {
@@ -1121,7 +1117,9 @@ startAutoPurchases(PURCHASE_TIERS[2]);
 // ── Reset ────────────────────────────────────────
 
 function resetPrototype() {
+  clearAwaitingButton();
   MILESTONES = buildMilestonesFromConfig();
+  STARTING_STOCK = MILESTONES[MILESTONES.length - 1]?.end || 200;
   totalPurchases = 0;
   currentMilestone = 0;
   transitioning = false;
@@ -1312,6 +1310,16 @@ showNotesDebugToggle.addEventListener("change", () => {
     showNotesEl.classList.remove("hidden");
   } else {
     showNotesEl.classList.add("hidden");
+  }
+});
+
+const gemsToggle = document.getElementById("gems-toggle");
+const gemsCounter = document.getElementById("gems-counter");
+gemsToggle.addEventListener("change", () => {
+  if (gemsToggle.checked) {
+    gemsCounter.classList.remove("hidden");
+  } else {
+    gemsCounter.classList.add("hidden");
   }
 });
 
@@ -1619,6 +1627,28 @@ document.addEventListener("touchend", () => { preshowDragging = false; });
 const pinnedProduct = document.querySelector(".pinned-product");
 const buyersEl = document.querySelector(".milestone-buyers");
 
+function setAwaitingButton(text) {
+  const swipeTrack = document.getElementById("swipe-track");
+  swipeTrack.classList.add("awaiting");
+  swipeTrack.querySelector(".swipe-thumb").classList.add("hidden");
+  if (!swipeTrack.querySelector(".awaiting-label")) {
+    const label = document.createElement("span");
+    label.className = "awaiting-label";
+    label.textContent = text;
+    swipeTrack.appendChild(label);
+  } else {
+    swipeTrack.querySelector(".awaiting-label").textContent = text;
+  }
+}
+
+function clearAwaitingButton() {
+  const swipeTrack = document.getElementById("swipe-track");
+  swipeTrack.classList.remove("awaiting");
+  swipeTrack.querySelector(".swipe-thumb").classList.remove("hidden");
+  const awaitLabel = swipeTrack.querySelector(".awaiting-label");
+  if (awaitLabel) awaitLabel.remove();
+}
+
 function enterLiveMode() {
   closeIntroSheet();
   ppPreshow.classList.add("hidden");
@@ -1683,15 +1713,7 @@ function enterLetsPartyMode() {
   pinnedProduct.classList.remove("hidden");
   milestoneTimer.classList.remove("hidden");
 
-  const swipeTrack = document.getElementById("swipe-track");
-  swipeTrack.classList.add("awaiting");
-  swipeTrack.querySelector(".swipe-thumb").classList.add("hidden");
-  if (!swipeTrack.querySelector(".awaiting-label")) {
-    const label = document.createElement("span");
-    label.className = "awaiting-label";
-    label.textContent = "Party Starting Soon";
-    swipeTrack.appendChild(label);
-  }
+  setAwaitingButton("Party Starting Soon");
 
   const sparkleHTML = Array.from({ length: 8 }, (_, i) =>
     `<span class="celeb-sparkle s${i + 1}"></span>`
@@ -1740,11 +1762,7 @@ let letsPartyDelayId = null;
 function exitLetsPartyMode() {
   clearInterval(letsPartyCountdownId);
   clearTimeout(letsPartyDelayId);
-  const swipeTrack = document.getElementById("swipe-track");
-  swipeTrack.classList.remove("awaiting");
-  swipeTrack.querySelector(".swipe-thumb").classList.remove("hidden");
-  const awaitLabel = swipeTrack.querySelector(".awaiting-label");
-  if (awaitLabel) awaitLabel.remove();
+  clearAwaitingButton();
   celebration.classList.remove("visible");
   celebration.classList.add("hiding");
   setTimeout(() => celebration.classList.remove("hiding"), 400);

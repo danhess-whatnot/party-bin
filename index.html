@@ -60,20 +60,22 @@
       </div>
     </div>
 
-    <!-- Gems Counter -->
-    <div class="gems-counter" id="gems-counter">
-      <img src="gem.png" alt="" class="gems-icon">
-      <div class="gems-body">
-        <span class="gems-label">Watch to earn</span>
-        <span class="gems-timer" id="gems-timer">00:00</span>
-        <div class="gems-progress-track">
-          <div class="gems-progress-fill" id="gems-progress-fill"></div>
+    <!-- Left Side Stack -->
+    <div class="left-side-stack">
+      <!-- Gems Counter -->
+      <div class="gems-counter" id="gems-counter">
+        <img src="gem.png" alt="" class="gems-icon">
+        <div class="gems-body">
+          <span class="gems-label">Watch to earn</span>
+          <span class="gems-timer" id="gems-timer">00:00</span>
+          <div class="gems-progress-track">
+            <div class="gems-progress-fill" id="gems-progress-fill"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Show Notes -->
-    <div class="show-notes hidden" id="show-notes">
+      <!-- Show Notes -->
+      <div class="show-notes hidden" id="show-notes">
       <div class="show-notes-collapsed" id="show-notes-toggle">
         <img src="https://www.figma.com/api/mcp/asset/ec5a4604-a5c6-42da-abb7-0abbcfdc1f2d" alt="" class="show-notes-icon">
         <span class="show-notes-label">Show<br>Notes</span>
@@ -89,6 +91,7 @@
         <div class="show-notes-section-title">Party Purchase Milestones</div>
         <div class="show-notes-list" id="show-notes-list"></div>
       </div>
+    </div>
     </div>
 
     <!-- Chat + Side Menu -->
@@ -221,7 +224,7 @@
               <span class="product-price-original">$100</span>
               <span class="product-price-discount"></span>
             </div>
-            <span class="product-stock">200 Left</span>
+            <span class="product-stock hidden">200 Left</span>
           </div>
         </div>
       </div>
@@ -312,12 +315,22 @@
         </label>
       </div>
       <div class="toggle-row">
+        <label class="speed-label">Gems Counter</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="gems-toggle" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+    <div class="controller toggle-pair">
+      <div class="toggle-row">
         <label class="speed-label">Buyer Badges</label>
         <label class="toggle-switch">
           <input type="checkbox" id="badge-toggle">
           <span class="toggle-track"></span>
         </label>
       </div>
+      <div class="toggle-row"></div>
     </div>
     <div class="controller toggle-pair">
       <div class="toggle-row">
