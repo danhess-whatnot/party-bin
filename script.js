@@ -145,7 +145,7 @@ function buildMilestonesFromConfig() {
 
     const rawName = badge || unlock || "Party Purchase";
     const rewardName = rawName.replace(/\b\w/g, c => c.toUpperCase());
-    const label = `Reward ${i + 1} – ${rewardName}`;
+    const label = total === 1 ? `Unlock for ${rewardName}` : `Reward ${i + 1} – ${rewardName}`;
 
     return {
       label,
