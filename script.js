@@ -62,7 +62,7 @@ const CELEBRATIONS = [
   {
     icon: "https://www.figma.com/api/mcp/asset/09d361af-48cd-4204-95b9-2ee37dce0877",
     title: "Buyer Giveaway",
-    subtitle: "Milestone Reached!",
+    subtitle: "Reward Unlocked!",
     avatars: [
       "https://www.figma.com/api/mcp/asset/a9d7898a-43bd-426d-afe8-90d105a6e1a9",
       "https://www.figma.com/api/mcp/asset/2ce32645-7b5e-4ff2-b7fb-2e3870b06bbb",
@@ -77,7 +77,7 @@ const CELEBRATIONS = [
   {
     icon: "https://www.figma.com/api/mcp/asset/ffa91e18-1119-444f-858c-5ff00aac14a2",
     title: "5% Off",
-    subtitle: "Milestone Reached!",
+    subtitle: "Reward Unlocked!",
     avatars: [
       "https://www.figma.com/api/mcp/asset/6aef1917-741b-4ed6-8c95-d2037eb97824",
       "https://www.figma.com/api/mcp/asset/b26c2c6c-46be-453b-a71d-173fa13ca5eb",
@@ -93,7 +93,7 @@ const CELEBRATIONS = [
     icon: "https://www.figma.com/api/mcp/asset/eb7d0893-b066-4669-abb0-d8c836ed216d",
     iconClass: "product",
     title: "Free Socks",
-    subtitle: "Milestone Reached!",
+    subtitle: "Reward Unlocked!",
     avatars: [
       "https://www.figma.com/api/mcp/asset/c1416f4d-84ac-460f-adae-309061297e37",
       "https://www.figma.com/api/mcp/asset/bec07cd1-7845-4d09-b881-6153533aa867",
@@ -572,7 +572,7 @@ function loadCelebration(milestoneIndex) {
       </div>
       <div class="celebration-text">
         <p class="celebration-title">${celebTitle}</p>
-        <p class="celebration-subtitle">${data.subtitle}</p>
+        <p class="celebration-subtitle">${milestoneIndex >= MILESTONES.length - 1 ? "Party Purchase Complete!" : data.subtitle}</p>
       </div>
     </div>`;
 }
@@ -1014,6 +1014,34 @@ function finishAllMilestones() {
   milestoneSection.classList.add("milestone-complete");
   stopAutoPurchases();
   setAwaitingButton("Awaiting Next Item");
+  startCompletionStars();
+}
+
+let completionStarsId = null;
+
+function emitSingleStar(container, maxWidth) {
+  const star = document.createElement("div");
+  star.className = "bar-star";
+  const x = Math.random() * maxWidth;
+  const dy = -(14 + Math.random() * 26);
+  star.style.cssText = `left:${x}px;--dy:${dy}px;animation-delay:0s`;
+  container.appendChild(star);
+  setTimeout(() => star.remove(), 1800);
+}
+
+function startCompletionStars() {
+  stopCompletionStars();
+  completionStarsId = setInterval(() => {
+    if (!barEffectsToggle.checked) return;
+    const trackWidth = progressTrack.offsetWidth;
+    if (trackWidth > 0) emitSingleStar(milestoneProgressEl, trackWidth);
+    const v3Fill = progressV3.querySelector(".v3-fill");
+    if (v3Fill && v3Fill.offsetWidth > 0) emitSingleStar(progressV3, v3Fill.offsetWidth);
+  }, 150);
+}
+
+function stopCompletionStars() {
+  if (completionStarsId) { clearInterval(completionStarsId); completionStarsId = null; }
 }
 
 function completeMilestone(ms) {
@@ -1116,6 +1144,7 @@ startAutoPurchases(PURCHASE_TIERS[2]);
 
 function resetPrototype() {
   clearAwaitingButton();
+  stopCompletionStars();
   MILESTONES = buildMilestonesFromConfig();
   STARTING_STOCK = MILESTONES[MILESTONES.length - 1]?.end || 200;
   totalPurchases = 0;
@@ -1132,6 +1161,7 @@ function resetPrototype() {
   priceDiscount.textContent = "";
   milestoneSection.classList.remove("glow-breathe");
   milestoneSection.classList.remove("glow-pulse");
+  milestoneSection.classList.remove("milestone-complete");
   giftIcon.classList.remove("wiggling");
   giftIcon.style.animationDuration = "";
   buyerActivity.classList.remove("visible");
