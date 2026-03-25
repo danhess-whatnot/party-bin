@@ -1746,6 +1746,7 @@ function enterLetsPartyMode() {
   milestoneTimer.classList.add("hidden");
 
   setAwaitingButton("Party Starting Soon");
+  milestoneSection.classList.add("milestone-complete");
 
   const lastMsName = MILESTONES[MILESTONES.length - 1];
   const finalName = (lastMsName.badge || lastMsName.unlock || "Party Purchase").replace(/\b\w/g, c => c.toUpperCase());
@@ -1764,7 +1765,7 @@ function enterLetsPartyMode() {
       </div>
       <div class="celebration-text">
         <p class="celebration-title">Let's Party</p>
-        <p class="celebration-subtitle" id="letsparty-subtitle">Show starts in 3</p>
+        <p class="celebration-subtitle" id="letsparty-subtitle" style="visibility:hidden">Show starts in 3</p>
       </div>
     </div>`;
   celebration.classList.remove("hiding");
@@ -1775,6 +1776,8 @@ function enterLetsPartyMode() {
   clearInterval(letsPartyCountdownId);
   clearTimeout(letsPartyDelayId);
   letsPartyDelayId = setTimeout(() => {
+    const sub = document.getElementById("letsparty-subtitle");
+    if (sub) sub.style.visibility = "visible";
     letsPartyCountdownId = setInterval(() => {
       countdown--;
       const sub = document.getElementById("letsparty-subtitle");
@@ -1784,12 +1787,19 @@ function enterLetsPartyMode() {
           showModeSelect.value = "live";
           exitLetsPartyMode();
           enterLiveMode();
+          launchGiveawayConfetti();
+          milestoneSection.classList.add("milestone-complete");
+          setTimeout(() => {
+            milestoneSection.classList.remove("milestone-complete");
+            const confettiEl = document.querySelector(".giveaway-confetti");
+            if (confettiEl) confettiEl.remove();
+          }, 3000);
         }, 500);
         return;
       }
       sub.textContent = `Show starts in ${countdown}`;
     }, 1000);
-  }, 2000);
+  }, 3000);
 }
 
 let letsPartyCountdownId = null;
