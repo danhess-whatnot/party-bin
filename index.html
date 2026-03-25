@@ -13,8 +13,8 @@
     <div class="status-bar">
       <span class="status-time">9:41</span>
       <div class="status-icons">
-        <img src="https://www.figma.com/api/mcp/asset/eef83297-9518-4043-8aa7-383ea7e77b40" alt="" class="status-signal">
-        <img src="https://www.figma.com/api/mcp/asset/b46b796a-0ff7-4579-9928-2f8030fc559d" alt="" class="status-wifi">
+        <img src="https://www.figma.com/api/mcp/asset/eef83297-9518-4043-8aa7-383ea7e77b40" alt="" class="status-signal" width="17" height="12">
+        <img src="https://www.figma.com/api/mcp/asset/b46b796a-0ff7-4579-9928-2f8030fc559d" alt="" class="status-wifi" width="16" height="12">
         <div class="status-battery">
           <div class="battery-body"><div class="battery-fill"></div></div>
           <div class="battery-cap"></div>
@@ -337,17 +337,17 @@
         <label class="speed-label">Show Mode</label>
         <select id="show-mode-select" class="debug-select">
           <option value="live">Live</option>
-          <option value="preshow">Reward Pre Show</option>
-          <option value="preshow2">Simple Pre Show</option>
+          <option value="preshow" hidden>Reward Pre Show</option>
+          <option value="preshow2">Pre Show</option>
           <option value="letsparty">Let's Party</option>
         </select>
       </div>
       <div class="toggle-row">
         <label class="speed-label">Bar Style</label>
         <select id="progress-style-select" class="debug-select">
-          <option value="v3">Simple Segmented</option>
-          <option value="v1">Progress Bar</option>
-          <option value="v2">Segmented Bar</option>
+          <option value="v3">Segmented</option>
+          <option value="v1">Single</option>
+          <option value="v2">Numbered</option>
         </select>
       </div>
     </div>
@@ -386,7 +386,7 @@
     </div>
     <div class="controller-divider"></div>
     <div class="controller">
-      <button class="reset-btn" id="trigger-jumbotron">Trigger Jumbotron</button>
+      <button class="reset-btn hidden" id="trigger-jumbotron">Trigger Jumbotron</button>
       <button class="reset-btn" id="reset-btn">Reset</button>
     </div>
   </div>

@@ -85,6 +85,8 @@ body {
   padding: 14px 24px 0;
   height: 54px;
   flex-shrink: 0;
+  min-height: 54px;
+  max-height: 54px;
 }
 
 .status-time {
@@ -98,15 +100,18 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
 }
 
-.status-signal { height: 12px; }
-.status-wifi { height: 12px; }
+.status-signal { width: 17px; height: 12px; flex-shrink: 0; }
+.status-wifi { width: 16px; height: 12px; flex-shrink: 0; }
 
 .status-battery {
   display: flex;
   align-items: center;
   gap: 1px;
+  flex-shrink: 0;
+  height: 12px;
 }
 
 .battery-body {

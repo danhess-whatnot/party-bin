@@ -553,7 +553,8 @@ function loadCelebration(milestoneIndex) {
   const ms = MILESTONES[milestoneIndex];
   const data = CELEBRATIONS[ms.celebration];
   const iconClass = data.iconClass ? `gift-main ${data.iconClass}` : "gift-main";
-  const celebTitle = ms.badge || data.title;
+  const rawTitle = ms.badge || data.title;
+  const celebTitle = rawTitle.replace(/\b\w/g, c => c.toUpperCase());
   const avatarHTML = data.avatars
     .map((src, i) => `<img src="${src}" alt="" class="float-avatar a${i + 1}">`)
     .join("");
@@ -994,9 +995,6 @@ function finishAllMilestones() {
   currentMilestone = MILESTONES.length;
   transitioning = false;
   milestoneSection.classList.remove("milestone-complete");
-  celebration.classList.remove("visible");
-  celebration.classList.add("hiding");
-  setTimeout(() => celebration.classList.remove("hiding"), 400);
   clearTimeout(titleSwapTimer);
   titleSwapped = true;
   if (showModeSelect.value === "live") milestoneTitle.textContent = "Party Progress Complete!";
@@ -1332,7 +1330,7 @@ function formatTime(s) {
 }
 
 setInterval(() => {
-  if (countdownSeconds > 0) {
+  if (countdownSeconds > 0 && showModeSelect.value === "live") {
     countdownSeconds--;
     milestoneTimer.textContent = formatTime(countdownSeconds);
   }
@@ -1657,8 +1655,11 @@ function enterLiveMode() {
   pinnedProduct.classList.remove("hidden");
   milestoneTimer.classList.remove("hidden");
   milestoneSection.style.marginBottom = "";
+  countdownSeconds = 10 * 60;
+  milestoneTimer.textContent = formatTime(countdownSeconds);
   switchProgressBar(progressStyleSelect.value);
   buyersEl.classList.remove("hidden");
+  clearAwaitingButton();
   startAutoPurchases(PURCHASE_TIERS[parseInt(purchaseSlider.value, 10)]);
   updateMilestoneUI();
 }
@@ -1707,13 +1708,18 @@ function enterLetsPartyMode() {
   resetPrototype();
   stopAutoPurchases();
   milestoneSection.classList.remove("hidden");
+  milestoneSection.classList.remove("milestone-complete");
   milestoneSection.style.marginBottom = "";
   switchProgressBar(progressStyleSelect.value);
   buyersEl.classList.remove("hidden");
   pinnedProduct.classList.remove("hidden");
-  milestoneTimer.classList.remove("hidden");
+  milestoneTimer.classList.add("hidden");
 
   setAwaitingButton("Party Starting Soon");
+
+  const lastMsName = MILESTONES[MILESTONES.length - 1];
+  const finalName = (lastMsName.badge || lastMsName.unlock || "Party Purchase").replace(/\b\w/g, c => c.toUpperCase());
+  milestoneTitle.textContent = `Party Purchase – ${finalName}`;
 
   const sparkleHTML = Array.from({ length: 8 }, (_, i) =>
     `<span class="celeb-sparkle s${i + 1}"></span>`
