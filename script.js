@@ -1630,11 +1630,98 @@ function enterPreshow2Mode() {
   milestoneCount.textContent = "";
 }
 
+function enterLetsPartyMode() {
+  closeIntroSheet();
+  ppPreshow.classList.add("hidden");
+  ppPreshow2.classList.add("hidden");
+  stopPreshowAutoScroll();
+  stopAutoPurchases();
+  resetPrototype();
+  stopAutoPurchases();
+  milestoneSection.classList.remove("hidden");
+  milestoneSection.style.marginBottom = "";
+  switchProgressBar(progressStyleSelect.value);
+  buyersEl.classList.remove("hidden");
+  pinnedProduct.classList.remove("hidden");
+  milestoneTimer.classList.remove("hidden");
+
+  const swipeTrack = document.getElementById("swipe-track");
+  swipeTrack.classList.add("awaiting");
+  swipeTrack.querySelector(".swipe-thumb").classList.add("hidden");
+  if (!swipeTrack.querySelector(".awaiting-label")) {
+    const label = document.createElement("span");
+    label.className = "awaiting-label";
+    label.textContent = "Party Starting Soon";
+    swipeTrack.appendChild(label);
+  }
+
+  const sparkleHTML = Array.from({ length: 8 }, (_, i) =>
+    `<span class="celeb-sparkle s${i + 1}"></span>`
+  ).join("");
+  celebration.innerHTML = `
+    <div class="celebration-content">
+      <div class="celebration-scene">
+        <div class="celeb-ring"></div>
+        <div class="celeb-glow"></div>
+        ${sparkleHTML}
+        <img src="disco.gif" alt="" class="gift-main" style="width:204px;height:204px;object-fit:contain;">
+      </div>
+      <div class="celebration-text">
+        <p class="celebration-title">Let's Party</p>
+        <p class="celebration-subtitle" id="letsparty-subtitle">Show starts in 3</p>
+      </div>
+    </div>`;
+  celebration.classList.remove("hiding");
+  celebration.classList.add("visible");
+  document.getElementById("gems-counter").classList.add("hidden");
+
+  let countdown = 3;
+  clearInterval(letsPartyCountdownId);
+  clearTimeout(letsPartyDelayId);
+  letsPartyDelayId = setTimeout(() => {
+    letsPartyCountdownId = setInterval(() => {
+      countdown--;
+      const sub = document.getElementById("letsparty-subtitle");
+      if (!sub || countdown <= 0) {
+        clearInterval(letsPartyCountdownId);
+        setTimeout(() => {
+          showModeSelect.value = "live";
+          exitLetsPartyMode();
+          enterLiveMode();
+        }, 500);
+        return;
+      }
+      sub.textContent = `Show starts in ${countdown}`;
+    }, 1000);
+  }, 2000);
+}
+
+let letsPartyCountdownId = null;
+let letsPartyDelayId = null;
+
+function exitLetsPartyMode() {
+  clearInterval(letsPartyCountdownId);
+  clearTimeout(letsPartyDelayId);
+  const swipeTrack = document.getElementById("swipe-track");
+  swipeTrack.classList.remove("awaiting");
+  swipeTrack.querySelector(".swipe-thumb").classList.remove("hidden");
+  const awaitLabel = swipeTrack.querySelector(".awaiting-label");
+  if (awaitLabel) awaitLabel.remove();
+  celebration.classList.remove("visible");
+  celebration.classList.add("hiding");
+  setTimeout(() => celebration.classList.remove("hiding"), 400);
+  milestoneSection.classList.remove("hidden");
+  document.getElementById("gems-counter").classList.remove("hidden");
+}
+
 showModeSelect.addEventListener("change", () => {
   const mode = showModeSelect.value;
+  if (showModeSelect.dataset.prev === "letsparty") exitLetsPartyMode();
+  showModeSelect.dataset.prev = mode;
   if (mode === "live") enterLiveMode();
   else if (mode === "preshow") enterPreshowMode();
   else if (mode === "preshow2") enterPreshow2Mode();
+  else if (mode === "letsparty") enterLetsPartyMode();
 });
 
 // ── Flame Effect ─────────────────────────────────

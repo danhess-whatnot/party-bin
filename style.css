@@ -1787,6 +1787,27 @@ body {
   user-select: none;
 }
 
+.swipe-track.awaiting {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(64px);
+  -webkit-backdrop-filter: blur(64px);
+  cursor: default;
+}
+
+.awaiting-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: -0.41px;
+  line-height: 20px;
+}
+
 .swipe-thumb {
   position: absolute;
   top: 1px;
