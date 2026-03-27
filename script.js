@@ -1,11 +1,11 @@
 // ── Constants ────────────────────────────────────
 
 const AVATARS = [
-  "assets/avatar-1.svg",
-  "assets/avatar-2.svg",
-  "assets/avatar-3.svg",
-  "assets/avatar-4.svg",
-  "assets/seller-avatar.svg",
+  "assets/avatar-1.png",
+  "assets/avatar-2.png",
+  "assets/avatar-3.png",
+  "assets/avatar-4.png",
+  "assets/seller-avatar.png",
 ];
 
 const USERNAMES = [
