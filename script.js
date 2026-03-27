@@ -1,11 +1,11 @@
 // ── Constants ────────────────────────────────────
 
 const AVATARS = [
-  "https://www.figma.com/api/mcp/asset/d1b662fb-01ba-4985-a98d-c9bc05148695",
-  "https://www.figma.com/api/mcp/asset/a5a09b94-9298-4db9-a5f6-126f1f3da900",
-  "https://www.figma.com/api/mcp/asset/3dce07be-4477-47d9-89a5-116c0c706cf9",
-  "https://www.figma.com/api/mcp/asset/b1c2d5b0-85f4-4800-be06-a1ab1ac86310",
-  "https://www.figma.com/api/mcp/asset/e386bf0b-9089-494b-83f8-40a6ed90c87a",
+  "assets/avatar-1.svg",
+  "assets/avatar-2.svg",
+  "assets/avatar-3.svg",
+  "assets/avatar-4.svg",
+  "assets/seller-avatar.svg",
 ];
 
 const USERNAMES = [
@@ -44,14 +44,14 @@ const SPEED_TIERS = [0, 4000, 1800, 800, 250];
 const PURCHASE_TIERS = [0, 3000, 1200, 500, 150];
 let STARTING_STOCK = 200;
 const BASE_PRICE = 100;
-const DAN_AVATAR = "https://www.figma.com/api/mcp/asset/3bf437ba-ebfe-4533-b203-6c8ceb7d207d";
-const PARTY_HAT = "https://www.figma.com/api/mcp/asset/e7ead8f7-1dd3-4c7e-ab54-6761e23bbda1";
+const DAN_AVATAR = "assets/dan-avatar.png";
+const PARTY_HAT = "assets/party-hat.png";
 const CONFETTI_COLORS = ["#ffe414", "#ef6a1f", "#2dd4a8", "#ff4d6a", "#7c5cfc", "#00b4ff", "#fff"];
-const ICON_GIFT = "https://www.figma.com/api/mcp/asset/6e54026c-7041-4cf2-9b8b-8e25106c9ed0";
+const ICON_GIFT = "assets/icon-gift.png";
 
-const ICON_GIFT_3D = "https://www.figma.com/api/mcp/asset/ded37128-8934-45f5-8add-1a740a1b835d";
-const ICON_DISCOUNT_3D = "https://www.figma.com/api/mcp/asset/fb4167fd-5181-4118-b62e-79095fbd420e";
-const ICON_CHECK = "https://www.figma.com/api/mcp/asset/622bf03e-70dd-4dd3-9a6a-98beb1a5580a";
+const ICON_GIFT_3D = "assets/icon-gift-3d.png";
+const ICON_DISCOUNT_3D = "assets/icon-discount-3d.png";
+const ICON_CHECK = "assets/icon-check.svg";
 
 const SPARKLE_OFFSETS = [
   { sx: -8, sy: -10 }, { sx: 10, sy: -7 }, { sx: -6, sy: 9 },
@@ -60,49 +60,49 @@ const SPARKLE_OFFSETS = [
 
 const CELEBRATIONS = [
   {
-    icon: "https://www.figma.com/api/mcp/asset/09d361af-48cd-4204-95b9-2ee37dce0877",
+    icon: "assets/giveaway-icon.png",
     title: "Buyer Giveaway",
     subtitle: "Reward Unlocked!",
     avatars: [
-      "https://www.figma.com/api/mcp/asset/a9d7898a-43bd-426d-afe8-90d105a6e1a9",
-      "https://www.figma.com/api/mcp/asset/2ce32645-7b5e-4ff2-b7fb-2e3870b06bbb",
-      "https://www.figma.com/api/mcp/asset/1468690b-b9d7-4d3b-aad3-2f65e9a9a396",
-      "https://www.figma.com/api/mcp/asset/06c218ab-d5e7-42af-9974-dddf34a1fb8b",
-      "https://www.figma.com/api/mcp/asset/6106904c-6c02-4709-ada4-70fdae4293c6",
-      "https://www.figma.com/api/mcp/asset/e6d98af8-ab32-47e2-b6b5-d4ae01c193be",
-      "https://www.figma.com/api/mcp/asset/eedf1861-c206-46c3-9562-08b50582044f",
-      "https://www.figma.com/api/mcp/asset/97649aef-9b15-4caf-8216-17349f17b2bb",
+      "assets/giveaway-fan-1.png",
+      "assets/giveaway-fan-2.png",
+      "assets/giveaway-fan-3.png",
+      "assets/giveaway-fan-4.png",
+      "assets/giveaway-fan-5.png",
+      "assets/giveaway-fan-6.png",
+      "assets/giveaway-fan-7.png",
+      "assets/giveaway-fan-8.png",
     ],
   },
   {
-    icon: "https://www.figma.com/api/mcp/asset/ffa91e18-1119-444f-858c-5ff00aac14a2",
+    icon: "assets/discount-icon.png",
     title: "5% Off",
     subtitle: "Reward Unlocked!",
     avatars: [
-      "https://www.figma.com/api/mcp/asset/6aef1917-741b-4ed6-8c95-d2037eb97824",
-      "https://www.figma.com/api/mcp/asset/b26c2c6c-46be-453b-a71d-173fa13ca5eb",
-      "https://www.figma.com/api/mcp/asset/41222753-d771-480f-a43b-a3c21adcc95e",
-      "https://www.figma.com/api/mcp/asset/4f405a23-b099-4bd3-9204-c9b19de5c4d8",
-      "https://www.figma.com/api/mcp/asset/9ae051e7-d53e-433a-85eb-b47feb68fca6",
-      "https://www.figma.com/api/mcp/asset/eba7c084-53ef-40d7-a673-16d22170bae0",
-      "https://www.figma.com/api/mcp/asset/1c856eb6-e4fc-4cc2-a3e1-fd9fa194ce2c",
-      "https://www.figma.com/api/mcp/asset/3c969792-f925-46c1-ba65-d70e8f1841fd",
+      "assets/discount-fan-1.png",
+      "assets/discount-fan-2.png",
+      "assets/discount-fan-3.png",
+      "assets/discount-fan-4.png",
+      "assets/discount-fan-5.png",
+      "assets/discount-fan-6.png",
+      "assets/discount-fan-7.png",
+      "assets/discount-fan-8.png",
     ],
   },
   {
-    icon: "https://www.figma.com/api/mcp/asset/eb7d0893-b066-4669-abb0-d8c836ed216d",
+    icon: "assets/gift-category-icon.png",
     iconClass: "product",
     title: "Free Socks",
     subtitle: "Reward Unlocked!",
     avatars: [
-      "https://www.figma.com/api/mcp/asset/c1416f4d-84ac-460f-adae-309061297e37",
-      "https://www.figma.com/api/mcp/asset/bec07cd1-7845-4d09-b881-6153533aa867",
-      "https://www.figma.com/api/mcp/asset/e68425d1-6bef-4bf0-a101-bba631cdb7cc",
-      "https://www.figma.com/api/mcp/asset/c6dd773a-f925-41a7-8fcf-494f711569c3",
-      "https://www.figma.com/api/mcp/asset/d74e59af-8017-452c-ad84-c5870e073432",
-      "https://www.figma.com/api/mcp/asset/5dfe8d2a-a6cf-4999-bea9-804727f4b594",
-      "https://www.figma.com/api/mcp/asset/b02619f9-4d53-48b4-a121-eacd5d8d9adc",
-      "https://www.figma.com/api/mcp/asset/35ec410d-e021-429d-ac1c-965a23fb5579",
+      "assets/gift-fan-1.png",
+      "assets/gift-fan-2.png",
+      "assets/gift-fan-3.png",
+      "assets/gift-fan-4.png",
+      "assets/gift-fan-5.png",
+      "assets/gift-fan-6.png",
+      "assets/gift-fan-7.png",
+      "assets/gift-fan-8.png",
     ],
   },
 ];
